@@ -1,0 +1,95 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#0b1325">
+  <meta name="description" content="Interactive TCP vs UDP network packet simulator with handshake, delivery acknowledgments, packet loss and retransmission.">
+  <title>TCP vs UDP — Interactive Network Lab</title>
+  <style>
+    :root{color-scheme:dark;--bg:#09111f;--panel:#111d30;--panel2:#16243a;--ink:#f3f7ff;--muted:#a3b3ca;--line:#2d405c;--tcp:#2ed4bc;--udp:#b995ff;--err:#ff6c78;--ok:#67e0ae;--accent:#7aa5ff;--shadow:0 20px 50px rgba(0,0,0,.18)}
+    *{box-sizing:border-box}body{margin:0;font:15px/1.55 system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;color:var(--ink);background:radial-gradient(ellipse at 12% -8%,#183354 0,transparent 36%),var(--bg)}
+    button,select{font:inherit}button{cursor:pointer}button:focus-visible,select:focus-visible{outline:3px solid #d6b4ff;outline-offset:3px}
+    .wrap{max-width:1160px;margin:auto;padding:26px clamp(14px,3vw,32px) 38px}.eyebrow{color:#a2c0f8;font-size:11px;font-weight:800;letter-spacing:.14em;text-transform:uppercase}.header{display:flex;gap:18px;align-items:end;justify-content:space-between;flex-wrap:wrap;margin-bottom:22px}.header h1{font-size:clamp(25px,3vw,42px);letter-spacing:-.045em;margin:6px 0 4px;line-height:1.1}.subtitle{color:var(--muted);margin:0}.hint{color:var(--muted);font-size:12px}.chip{font-size:11px;font-weight:750;border:1px solid var(--line);border-radius:999px;padding:6px 11px;color:#bfd0e8;background:#15263e;white-space:nowrap}
+    .panel{background:var(--panel);border:1px solid var(--line);border-radius:16px;box-shadow:var(--shadow)}.toolbar{padding:16px 19px;margin-bottom:14px;display:grid;gap:14px}.toolbar-row{display:flex;gap:12px;justify-content:space-between;align-items:center;flex-wrap:wrap}.toolbar-row .sectionlabel{font-size:11px;color:var(--muted);font-weight:800;letter-spacing:.12em;text-transform:uppercase;margin-right:5px}.control-group{display:flex;align-items:center;gap:8px;flex-wrap:wrap}.btn{min-height:39px;padding:8px 13px;background:#1e304a;border:1px solid #3a5272;color:var(--ink);border-radius:9px;font-size:13px;font-weight:700}.btn:hover:not(:disabled){background:#2a405e}.btn[aria-pressed="true"]{border-color:var(--accent);background:#223f65;color:#e0ebff}.btn-primary{background:#4f80e8;border-color:#4f80e8;color:white}.btn-primary:hover:not(:disabled){background:#6494ef}.btn:disabled{opacity:.4;cursor:default}select{padding:7px 11px;border-radius:9px;border:1px solid #3a5272;background:#1e304a;color:white;font-weight:650;font-size:13px}.phase{font-weight:750;font-size:14px}.counter{color:var(--muted);font-size:12px}.progress{height:6px;border-radius:100px;background:#283955;overflow:hidden}.progressbar{height:100%;width:0;background:linear-gradient(90deg,var(--tcp),#7d98fc);transition:width .25s}
+    .columns{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:14px}.protocol{padding:17px;min-width:0;border-top:3px solid var(--tcp)}.protocol.udp{border-top-color:var(--udp)}.protocol-head{display:flex;align-items:baseline;justify-content:space-between;gap:8px}.protocol h2{margin:0;font-size:23px;letter-spacing:-.04em;color:var(--tcp)}.protocol.udp h2{color:var(--udp)}.protocol .detail{font-size:11px;color:var(--muted);font-weight:800;letter-spacing:.08em;text-align:right}.protocol-intro{font-size:12px;color:var(--muted);margin:1px 0 12px}
+    .network{position:relative;height:175px;background:radial-gradient(ellipse at center,#1a304a 0,#0e1c2f 80%);border:1px solid var(--line);border-radius:12px;overflow:hidden}.node{position:absolute;top:27px;text-align:center;z-index:2;transform:translateX(-50%);width:80px}.node.client{left:14%}.node.server{left:86%}.node-icon{height:53px;width:59px;margin:0 auto 6px;border:1px solid #47607f;border-radius:11px;display:grid;place-items:center;background:#233852;font-size:29px}.node-name{font-size:12px;font-weight:750}.wire{position:absolute;left:22%;right:22%;top:55px;border-top:2px dashed #476481}.network-sub{position:absolute;bottom:13px;text-align:center;width:100%;color:#8ca6c6;font-size:11px}.packet{position:absolute;top:39px;left:20%;z-index:5;min-width:46px;max-width:130px;text-align:center;padding:7px 9px;color:#081b22;background:var(--tcp);border-radius:7px;box-shadow:0 4px 16px #0007;font-size:12px;font-weight:900;white-space:nowrap;transform:translateX(-50%)}.udp .packet{background:var(--udp);color:#150d26}.packet.lost{background:var(--err);color:#23070b}.packet-icon{position:absolute;top:33px;left:60%;font-size:22px;color:var(--err);font-weight:950;display:none}.packet-icon.show{display:block}
+    .readout{margin-top:14px;min-height:101px}.readout h3{font-size:15px;margin:0 0 5px;letter-spacing:-.01em}.readout p{font-size:13px;color:var(--muted);margin:0}.eventlog{margin-top:13px;padding-top:12px;border-top:1px solid var(--line);min-height:108px}.eventlog .logtitle{font-size:11px;font-weight:800;letter-spacing:.12em;color:var(--muted);text-transform:uppercase;margin-bottom:4px}.logline{font-size:11px;color:#91a7c1;margin:2px 0;line-height:1.45}.logline.current{font-weight:800;color:#e4edff}
+    .footer{margin-top:14px;padding:15px 18px}.legend{display:flex;gap:14px;flex-wrap:wrap;font-size:12px;color:var(--muted);margin:8px 0}.dot{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:5px}.note{font-size:12px;color:var(--muted);line-height:1.7}.note strong{color:#e7efff}.sr-only{position:absolute!important;height:1px;width:1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap}
+    @media(max-width:720px){.columns{grid-template-columns:1fr}.wrap{padding-top:18px}.toolbar{padding:14px}.network{height:160px}.eventlog{min-height:92px}.readout{min-height:75px}}
+    @media(prefers-reduced-motion:reduce){.progressbar{transition:none}}
+  </style>
+</head>
+<body>
+<main class="wrap">
+  <nav style="margin-bottom:15px"><a href="../../" style="color:#a9d8ff;text-decoration:none;font-size:13px;font-weight:750">← All architecture labs</a></nav>
+  <header class="header">
+    <div><div class="eyebrow">Network Architecture · Layer 4</div><h1>TCP <span style="color:#8da7cb">vs</span> UDP</h1><p class="subtitle">Interactive packet journey — connection, data delivery, loss and recovery.</p></div>
+    <div class="chip">Standalone · No backend</div>
+  </header>
+  <section class="toolbar panel" aria-label="Simulation controls">
+    <div class="toolbar-row">
+      <div class="control-group"><span class="sectionlabel">Scenario</span><button class="btn" id="loss" aria-pressed="true">With packet loss</button><button class="btn" id="normal" aria-pressed="false">No packet loss</button></div>
+      <div class="control-group"><label class="sectionlabel" for="speed">Speed</label><select id="speed"><option value="2800">0.75×</option><option value="2000" selected>1×</option><option value="1200">1.5×</option></select></div>
+    </div>
+    <div class="toolbar-row"><div class="phase" id="phase">Ready to begin</div><div class="counter" id="count">Step 0 / 9</div></div>
+    <div class="progress" role="progressbar" aria-valuemin="0" aria-valuemax="9" aria-valuenow="0" aria-label="Simulation progress"><div class="progressbar" id="progress"></div></div>
+    <div class="toolbar-row"><div class="control-group"><button class="btn btn-primary" id="play">▶ Play</button><button class="btn" id="next">Next step →</button><button class="btn" id="reset">↺ Restart</button></div><span class="hint">Use Play or advance one step at a time.</span></div>
+  </section>
+  <div class="columns">
+    <section class="protocol panel" aria-label="TCP simulation">
+      <div class="protocol-head"><h2>TCP</h2><span class="detail">RELIABLE BYTE STREAM</span></div><p class="protocol-intro">Connection-oriented · Ordered delivery · Retransmission</p>
+      <div class="network" id="tcp-track"><div class="node client"><div class="node-icon">💻</div><div class="node-name">Client</div></div><div class="wire"></div><div class="node server"><div class="node-icon">🖥️</div><div class="node-name">Server</div></div><div id="tcp-packet"></div><div class="packet-icon" id="tcp-cross" aria-hidden="true">✕</div><div class="network-sub">Transport layer: TCP</div></div>
+      <div class="readout" role="status" aria-live="polite"><h3 id="tcp-title">Waiting</h3><p id="tcp-desc">No TCP connection established yet.</p></div><div class="eventlog"><div class="logtitle">TCP event log</div><div id="tcp-log"><div class="logline">No events yet.</div></div></div>
+    </section>
+    <section class="protocol udp panel" aria-label="UDP simulation">
+      <div class="protocol-head"><h2>UDP</h2><span class="detail">CONNECTIONLESS DATAGRAMS</span></div><p class="protocol-intro">No handshake · No ordering guarantee · No built-in retransmission</p>
+      <div class="network" id="udp-track"><div class="node client"><div class="node-icon">💻</div><div class="node-name">Client</div></div><div class="wire"></div><div class="node server"><div class="node-icon">🖥️</div><div class="node-name">Server</div></div><div id="udp-packet"></div><div class="packet-icon" id="udp-cross" aria-hidden="true">✕</div><div class="network-sub">Transport layer: UDP</div></div>
+      <div class="readout" role="status" aria-live="polite"><h3 id="udp-title">Waiting</h3><p id="udp-desc">No UDP handshake required.</p></div><div class="eventlog"><div class="logtitle">UDP event log</div><div id="udp-log"><div class="logline">No events yet.</div></div></div>
+    </section>
+  </div>
+  <footer class="footer panel">
+    <strong style="font-size:13px">What to notice</strong><div class="legend"><span><i class="dot" style="background:var(--tcp)"></i>TCP exchanges</span><span><i class="dot" style="background:var(--udp)"></i>UDP datagrams</span><span><i class="dot" style="background:var(--err)"></i>Simulated network loss</span></div>
+    <div class="note"><strong>Architecture note:</strong> The two timelines are conceptual, not synchronized packet captures. TCP sequence numbers, cumulative ACKs, windowing, and congestion control are simplified. TCP can retransmit unacknowledged data; it cannot guarantee delivery if a connection permanently fails. UDP itself does not detect or recover losses, but applications or protocols such as QUIC can implement these functions above UDP. Neither transport protocol provides encryption on its own.</div>
+  </footer>
+</main>
+<script>
+(()=>{
+  'use strict';
+  const $=id=>document.getElementById(id);
+  const pk=(label,direction='right',lost=false)=>({label,direction,lost});
+  const ev=(title,description,packet=null)=>({title,description,packet});
+  let scenario='loss',step=-1,playing=false,timer=null,activeAnimations=[];
+  function stages(){
+    const loss=scenario==='loss';
+    return [
+      {name:'1 · TCP handshake / UDP direct send',tcp:ev('SYN →','The client requests a TCP connection.',pk('SYN')),udp:ev('Datagram D1 →','UDP sends application data immediately — no handshake.',pk('D1'))},
+      {name:'2 · Server response / second datagram',tcp:ev('← SYN-ACK','The server acknowledges SYN and responds with its own SYN.',pk('SYN-ACK','left')),udp:loss?ev('D2 lost in transit','This UDP datagram never arrives at the server.',pk('D2','right',true)):ev('Datagram D2 →','The second UDP datagram arrives.',pk('D2'))},
+      {name:'3 · TCP handshake complete',tcp:ev('ACK →','The client sends the final ACK. The TCP connection is established.',pk('ACK')),udp:ev('Datagram D3 →',loss?'D3 arrives even though D2 was lost.':'The third UDP datagram arrives.',pk('D3'))},
+      {name:'4 · TCP data transmission',tcp:ev('DATA 1 →','The client sends the first TCP data segment.',pk('DATA 1')),udp:ev('No UDP acknowledgment','UDP does not provide built-in ACKs for datagram delivery.')},
+      {name:'5 · TCP acknowledgment',tcp:ev('← ACK 1','The server acknowledges receipt of the first data segment.',pk('ACK 1','left')),udp:ev(loss?'D2 still missing':'No loss detected',loss?'UDP does not retransmit D2 by itself.':'UDP provides no transport-layer ACKs.')},
+      {name:'6 · Second TCP data segment',tcp:loss?ev('DATA 2 lost','The second TCP segment is lost in the network.',pk('DATA 2','right',true)):ev('DATA 2 →','The second TCP segment arrives.',pk('DATA 2')),udp:ev('No automatic recovery',loss?'The lost UDP datagram stays missing.':'UDP communication remains connectionless.')},
+      {name:loss?'7 · TCP detects an unacknowledged segment':'7 · Successful acknowledgment',tcp:loss?ev('Retransmission timeout','The expected ACK does not arrive; TCP’s retransmission timer expires.'):ev('← ACK 2','The server acknowledges the second data segment.',pk('ACK 2','left')),udp:ev('No UDP recovery mechanism',loss?'UDP itself cannot retransmit D2.':'UDP sends no automatic delivery confirmations.')},
+      {name:loss?'8 · TCP retransmits':'8 · TCP transfer complete',tcp:loss?ev('DATA 2 retransmitted →','TCP resends the missing segment.',pk('DATA 2 ↻')):ev('TCP segments acknowledged','Both TCP data segments have been received and acknowledged.'),udp:ev(loss?'D2 remains lost':'UDP datagrams sent',loss?'An application-level protocol could handle loss, but UDP does not.':'All three UDP datagrams have arrived in this scenario.')},
+      {name:'9 · Final outcome',tcp:loss?ev('← ACK 2: received','The server acknowledges the retransmitted segment.',pk('ACK 2','left')):ev('Reliable delivery in this run','The sent TCP data was acknowledged.'),udp:ev(loss?'D1 and D3 arrived; D2 was lost':'D1, D2, D3 arrived',loss?'UDP performed no retransmission.':'No UDP packet loss was simulated in this run.')}
+    ];
+  }
+  let timeline=stages();
+  const clearTimer=()=>{if(timer!==null){clearTimeout(timer);timer=null}};
+  function cancelPackets(){activeAnimations.forEach(a=>{try{a.cancel()}catch{}});activeAnimations=[];for(const proto of ['tcp','udp']){$(proto+'-packet').replaceChildren();$(proto+'-cross').classList.remove('show')}}
+  function showPacket(proto,p){if(!p)return;const host=$(proto+'-packet'),track=$(proto+'-track'),tag=document.createElement('div');tag.className='packet'+(p.lost?' lost':'');tag.textContent=p.label;host.appendChild(tag);const start=p.direction==='right'?22:78,end=p.lost?(p.direction==='right'?59:41):(p.direction==='right'?78:22);tag.style.left=start+'%';const dur=Math.min(1150,Number($('speed').value)*.55);if(window.matchMedia('(prefers-reduced-motion: reduce)').matches){tag.style.left=end+'%';if(p.lost)$(proto+'-cross').classList.add('show');return}
+    const anim=tag.animate([{left:start+'%',opacity:.75},{left:end+'%',opacity:1}],{duration:dur,easing:'ease-in-out',fill:'forwards'});activeAnimations.push(anim);anim.onfinish=()=>{tag.style.left=end+'%';anim.cancel();if(p.lost)$(proto+'-cross').classList.add('show')};
+  }
+  function writeLog(proto){const host=$(proto+'-log');host.replaceChildren();if(step<0){const line=document.createElement('div');line.className='logline';line.textContent='No events yet.';host.appendChild(line);return}for(let i=Math.max(0,step-2);i<=step;i++){const line=document.createElement('div');line.className='logline'+(i===step?' current':'');line.textContent=`${i+1}. ${timeline[i][proto].title}`;host.appendChild(line)}}
+  function render(){cancelPackets();$('phase').textContent=step<0?'Ready to begin':timeline[step].name;$('count').textContent=`Step ${step+1} / ${timeline.length}`;$('progress').style.width=(step+1)/timeline.length*100+'%';document.querySelector('[role="progressbar"]').setAttribute('aria-valuenow',String(step+1));for(const proto of ['tcp','udp']){const current=step<0?null:timeline[step][proto];$(proto+'-title').textContent=current?current.title:'Waiting';$(proto+'-desc').textContent=current?current.description:(proto==='tcp'?'No TCP connection established yet.':'No UDP handshake required.');writeLog(proto);if(current)showPacket(proto,current.packet)}$('next').disabled=step>=timeline.length-1;if(step>=timeline.length-1){playing=false;clearTimer()}$('play').textContent=playing?'Ⅱ Pause':step>=timeline.length-1?'↻ Replay':step<0?'▶ Play':'▶ Continue'}
+  function pause(){playing=false;clearTimer();activeAnimations.forEach(a=>{try{a.pause()}catch{}});$('play').textContent=step>=timeline.length-1?'↻ Replay':step<0?'▶ Play':'▶ Continue'}
+  function next(){if(step<timeline.length-1){step++;render()}}
+  function tick(){if(!playing)return;if(step>=timeline.length-1){pause();return}next();if(playing)timer=setTimeout(tick,Number($('speed').value))}
+  function toggle(){if(playing){pause();return}if(step>=timeline.length-1)step=-1;playing=true;tick()}
+  function reset(){pause();step=-1;render()}
+  function choose(value){scenario=value;timeline=stages();$('loss').setAttribute('aria-pressed',String(value==='loss'));$('normal').setAttribute('aria-pressed',String(value==='normal'));reset()}
+  $('play').addEventListener('click',toggle);$('next').addEventListener('click',()=>{pause();next()});$('reset').addEventListener('click',reset);$('loss').addEventListener('click',()=>choose('loss'));$('normal').addEventListener('click',()=>choose('normal'));$('speed').addEventListener('change',()=>{if(playing){clearTimer();timer=setTimeout(tick,Number($('speed').value))}});document.addEventListener('visibilitychange',()=>{if(document.hidden&&playing)pause()});render();
+})();
+</script>
+</body>
+</html>

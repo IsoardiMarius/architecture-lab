@@ -1,0 +1,66 @@
+name: Validate and deploy Architecture Lab
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: github-pages
+  cancel-in-progress: false
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+      - name: Verify static pages and links
+        run: python3 -m unittest discover -s tests -v
+      - name: Validate JavaScript syntax
+        run: |
+          node --check site/assets/catalog.js
+          python3 - <<'PY'
+          from html.parser import HTMLParser
+          from pathlib import Path
+          class Scripts(HTMLParser):
+              def __init__(self):
+                  super().__init__(); self.inside = False; self.scripts=[]
+              def handle_starttag(self, tag, attrs):
+                  if tag == 'script' and not dict(attrs).get('src'): self.inside=True
+              def handle_data(self, data):
+                  if self.inside: self.scripts.append(data)
+              def handle_endtag(self, tag):
+                  if tag == 'script': self.inside=False
+          p=Scripts(); p.feed(Path('site/labs/tcp-vs-udp/index.html').read_text()); Path('/tmp/lab-check.js').write_text('\n'.join(p.scripts))
+          PY
+          node --check /tmp/lab-check.js
+      - name: Configure GitHub Pages
+        if: github.event_name != 'pull_request'
+        uses: actions/configure-pages@v5
+      - name: Upload website
+        if: github.event_name != 'pull_request'
+        uses: actions/upload-pages-artifact@v4
+        with:
+          path: ./site
+          include-hidden-files: true
+
+  deploy:
+    if: github.event_name != 'pull_request'
+    needs: validate
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4

@@ -1,0 +1,46 @@
+:root{color-scheme:dark;--bg:#09111f;--panel:#111e31;--panel2:#182943;--line:#324761;--text:#f3f7ff;--muted:#a7b7cf;--accent:#63b2ff;--teal:#36d7c3}
+*{box-sizing:border-box}[hidden]{display:none!important}
+html{scroll-behavior:smooth}
+body{margin:0;background:radial-gradient(ellipse at 8% 3%,#1a375d 0,transparent 37%),radial-gradient(ellipse at 90% 30%,#1d2645 0,transparent 35%),var(--bg);color:var(--text);font:15px/1.6 system-ui,-apple-system,Segoe UI,Roboto,sans-serif;min-height:100vh}
+a{color:inherit}
+a:focus-visible,input:focus-visible{outline:3px solid #b4ddff;outline-offset:3px}
+.wrap{max-width:1120px;margin:0 auto;padding:0 24px}
+.topbar{border-bottom:1px solid #2a3c56;background:#091422b3;backdrop-filter:blur(14px)}
+.topbar-inner{min-height:68px;display:flex;align-items:center;justify-content:space-between;gap:12px}
+.brand{display:flex;align-items:center;gap:11px;text-decoration:none;font-size:15px;font-weight:800;letter-spacing:-.02em}
+.brand-icon{width:31px;height:31px;border:1px solid #42779b;background:#193850;border-radius:9px;display:grid;place-items:center;color:#7af6e7}
+.toplink{font-size:12px;color:var(--muted);text-decoration:none}
+.toplink:hover,.entry:hover{color:white}
+.hero{padding:75px 0 47px}
+.eyebrow{color:#8fc2f5;text-transform:uppercase;font-size:11px;letter-spacing:.14em;font-weight:800}
+h1{font-size:clamp(35px,6vw,65px);letter-spacing:-.06em;line-height:1.05;margin:13px 0 18px;max-width:820px}
+h1 span{color:#82ded7}
+.intro{font-size:clamp(15px,2vw,19px);color:var(--muted);max-width:700px;margin:0}
+.hero-tags{display:flex;flex-wrap:wrap;gap:8px;margin-top:26px}
+.hero-tags span{border:1px solid #35516b;background:#172a42;border-radius:999px;padding:5px 12px;font-size:12px;color:#c1d3eb}
+.section-head{display:flex;align-items:end;justify-content:space-between;gap:18px;flex-wrap:wrap;margin:5px 0 22px}
+.section-head h2{font-size:25px;letter-spacing:-.04em;margin:0}
+.section-head p{color:var(--muted);font-size:13px;margin:5px 0 0}
+.search{border:1px solid #3b536f;border-radius:11px;background:#15263d;color:white;padding:11px 14px;font:inherit;font-size:13px;width:min(100%,245px)}
+.search::placeholder{color:#abbdd5}
+.cards{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:15px;margin-bottom:40px}
+.card{position:relative;display:flex;flex-direction:column;gap:15px;border:1px solid var(--line);background:linear-gradient(145deg,#172944,#111e31);border-radius:17px;min-height:245px;padding:23px;transition:transform .18s,border-color .18s,background .18s}
+.card:hover{transform:translateY(-3px);border-color:#5caed3}
+.card-top{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.pill{display:inline-block;border-radius:6px;font-size:10px;letter-spacing:.09em;font-weight:800;text-transform:uppercase;padding:4px 8px;border:1px solid #3d6482;color:#b7d4f5}
+.pill.live{border-color:#227d75;color:#73f3da;background:#123a3d}
+.card h3{font-size:23px;line-height:1.2;letter-spacing:-.04em;margin:0}
+.card p{color:var(--muted);font-size:13px;margin:0;flex:1}
+.entry{text-decoration:none;color:#aeeaf1;font-size:13px;font-weight:750;align-self:start}
+.card .graphic{display:flex;gap:8px;align-items:center;justify-content:space-between;max-width:215px}
+.graphic .host{width:43px;height:35px;border:1px solid #54738f;border-radius:7px;background:#24405f;display:grid;place-items:center;font-size:18px}
+.graphic .line{height:2px;background:#43d6c2;flex:1;position:relative}
+.graphic .line:after{content:'›';position:absolute;right:-3px;top:-16px;color:#43d6c2;font-size:25px}
+.empty{display:none;color:var(--muted);border:1px dashed var(--line);padding:25px;border-radius:12px}
+.roadmap{border-top:1px solid #29405b;padding:26px 0 38px}
+.roadmap h2{font-size:17px;margin:0 0 5px}
+.roadmap p{color:var(--muted);margin:0;font-size:13px;max-width:680px}
+.footer{border-top:1px solid #29405b;color:var(--muted);padding:19px 0 27px;font-size:12px;display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap}
+@media(max-width:900px){.cards{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:630px){.cards{grid-template-columns:1fr}.hero{padding:47px 0 34px}.toplink{display:none}.wrap{padding:0 17px}.search{width:100%}.section-head{align-items:stretch}.card{min-height:220px}}
+@media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}.card{transition:none}}
