@@ -1,0 +1,156 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#0b0f14">
+  <meta name="description" content="Learn what a buffer is, how temporary storage handles different data rates, and why capacity, latency, and backpressure matter.">
+  <title>Buffers — Architecture Lab</title>
+  <link rel="stylesheet" href="../../assets/base.css">
+  <link rel="stylesheet" href="../../assets/lesson.css">
+  <link rel="stylesheet" href="../../assets/diagrams.css">
+</head>
+<body>
+<header class="site-header">
+  <nav class="site-nav container" aria-label="Site navigation">
+    <a class="brand" href="../../"><span class="brand-mark" aria-hidden="true">A/</span>Architecture Lab</a>
+    <a class="back-link" href="../../">← All concepts</a>
+  </nav>
+</header>
+<main class="container">
+  <header class="hero">
+    <div class="eyebrow">Systems / Fundamental concept</div>
+    <h1>Buffers</h1>
+    <p class="hero-lede"><strong>A buffer is temporary storage for data while it waits to be sent, received, processed, or consumed.</strong> It helps two parts of a system work at different rates.</p>
+    <div class="hero-meta"><span>Concept guide</span><span>Interactive capacity demo</span><span>Architecture review questions</span></div>
+    <a class="hero-cta" href="#experiment">Try the buffer demo ↓</a>
+  </header>
+  <div class="lesson-layout">
+    <nav class="toc" aria-label="On this page">
+      <div class="toc-label">On this page</div>
+      <a href="#definition">01 · The idea</a>
+      <a href="#mechanism">02 · How it works</a>
+      <a href="#experiment">03 · Experiment</a>
+      <a href="#examples">04 · Where we use it</a>
+      <a href="#tradeoffs">05 · Trade-offs</a>
+      <a href="#questions">06 · Questions</a>
+      <a href="#references">References</a>
+      <div class="toc-rule"></div>
+      <div class="toc-hint">Read the mechanism.<br>Test the limit.<br>Explain the trade-off.</div>
+    </nav>
+    <article class="article">
+      <section class="section" id="definition" aria-labelledby="definition-title">
+        <div class="section-number">01 / In one sentence</div>
+        <h2 id="definition-title">Why do buffers exist?</h2>
+        <div class="callout"><p>A <strong>buffer temporarily holds data</strong> because the producer and consumer may not run at the same speed or at exactly the same time.</p></div>
+        <p>Think of the counter between a restaurant kitchen and its waiters: a cook can put a finished plate down before a waiter is available to pick it up.</p>
+        <p><strong>Analogy limit:</strong> the counter has a finite capacity. Adding a bigger counter does not make the waiters faster. Also, not every buffer follows a first-in, first-out (FIFO) order.</p>
+        <figure class="system-figure">
+          <div class="flow-track" role="img" aria-label="A producer sends data into temporary buffer storage, from which a consumer reads it.">
+            <div class="flow-node"><span class="flow-kicker">Step 1</span><strong>Producer</strong><small>Creates data</small></div>
+            <span class="flow-arrow" aria-hidden="true">→</span>
+            <div class="flow-node flow-node-emphasis"><span class="flow-kicker">Temporary</span><strong>Buffer</strong><small>Holds data</small></div>
+            <span class="flow-arrow" aria-hidden="true">→</span>
+            <div class="flow-node"><span class="flow-kicker">Step 2</span><strong>Consumer</strong><small>Reads data</small></div>
+          </div>
+          <figcaption>Buffering decouples timing; it does not create processing capacity.</figcaption>
+        </figure>
+      </section>
+      <section class="section" id="mechanism" aria-labelledby="mechanism-title">
+        <div class="section-number">02 / Mechanism</div>
+        <h2 id="mechanism-title">Produce → store → consume</h2>
+        <p>The producer puts data into the buffer. The consumer takes data out when it is ready. In a simple bounded queue, the buffer has a fixed number of slots. Real buffers may store bytes, pages, frames, or messages rather than discrete slots.</p>
+        <h3>What happens when speeds differ?</h3>
+        <div class="decision-list">
+          <div class="decision"><b>Producer temporarily faster</b><p>The buffer fills. Short bursts can be absorbed without stopping the whole pipeline immediately.</p></div>
+          <div class="decision"><b>Consumer catches up</b><p>The buffer drains. If empty, the consumer may need to wait for more data.</p></div>
+          <div class="decision"><b>Producer stays faster</b><p>A finite buffer eventually fills. The system must wait, apply backpressure, reject, drop, or spill data, depending on its design.</p></div>
+        </div>
+        <div class="callout"><p><strong>Capacity example:</strong> producer = 2 MB/s, consumer = 1.5 MB/s. If the buffer starts empty and has 10 MB free, it fills at 0.5 MB/s and reaches capacity after about <strong>20 seconds</strong> of sustained imbalance.</p></div>
+        <p class="fine-print">This simplified calculation assumes steady rates and no overhead or capacity changes.</p>
+      </section>
+      <section class="section" id="experiment" aria-labelledby="experiment-title">
+        <div class="section-number">03 / Interactive lab</div>
+        <h2 id="experiment-title">Try a bounded buffer.</h2>
+        <p>Produce data faster than it can be consumed. Observe the occupancy and what happens when the buffer reaches its limit.</p>
+        <div class="buffer-demo" id="buffer-demo" aria-label="Interactive six-slot buffer demonstration">
+          <div class="buffer-demo-head">
+            <div><span class="diagram-kicker">CAPACITY</span><strong id="buffer-count" aria-live="polite">0 / 6 slots</strong></div>
+            <div><span class="diagram-kicker">STATUS</span><strong id="buffer-state" aria-live="polite">Empty</strong></div>
+          </div>
+          <div class="buffer-slot-grid" id="buffer-slots" aria-label="Six buffer slots">
+            <span class="buffer-slot" aria-label="Empty slot">—</span><span class="buffer-slot" aria-label="Empty slot">—</span><span class="buffer-slot" aria-label="Empty slot">—</span><span class="buffer-slot" aria-label="Empty slot">—</span><span class="buffer-slot" aria-label="Empty slot">—</span><span class="buffer-slot" aria-label="Empty slot">—</span>
+          </div>
+          <div class="buffer-meter" role="progressbar" aria-label="Buffer occupancy" aria-valuemin="0" aria-valuemax="6" aria-valuenow="0" id="buffer-meter"><div class="buffer-meter-fill" id="buffer-fill"></div></div>
+          <div class="buffer-controls">
+            <button class="btn btn-primary" id="produce-one" type="button">+ Produce 1</button>
+            <button class="btn" id="produce-three" type="button">+ Burst of 3</button>
+            <button class="btn" id="consume-one" type="button">− Consume 1</button>
+            <button class="btn" id="reset-buffer" type="button">↺ Reset</button>
+          </div>
+          <p class="buffer-event" id="buffer-event" role="status" aria-live="polite">Start by producing an item.</p>
+        </div>
+        <p class="fine-print"><strong>Model limitation:</strong> this is a bounded FIFO queue, one possible type of buffer. When full, the demo refuses new items; real systems may block producers, apply backpressure, drop data, or use additional storage. TCP buffers have more complex behavior.</p>
+      </section>
+      <section class="section" id="examples" aria-labelledby="examples-title">
+        <div class="section-number">04 / Real-world examples</div>
+        <h2 id="examples-title">Buffers are everywhere.</h2>
+        <div class="table-scroller"><table class="compare">
+          <thead><tr><th scope="col">System</th><th scope="col">What is buffered?</th><th scope="col">Why?</th></tr></thead>
+          <tbody>
+            <tr><td>TCP send buffer</td><td>Data to send and/or still awaiting acknowledgment</td><td>Sending and retransmission</td></tr>
+            <tr><td>TCP receive buffer</td><td>Incoming bytes, including potentially out-of-order data</td><td>Reassembly and app reads</td></tr>
+            <tr><td>Video playback buffer</td><td>Media data before display</td><td>Smooth out variable arrival times</td></tr>
+            <tr><td>Linux page cache</td><td>Cached file data in memory</td><td>Avoid repeated storage reads; help with I/O</td></tr>
+            <tr><td>PostgreSQL shared_buffers</td><td>Database data pages in shared memory</td><td>Reduce disk reads and manage data access</td></tr>
+          </tbody>
+        </table></div>
+        <p>In Linux, TCP buffer sizing can be influenced by <code>net.ipv4.tcp_rmem</code> and <code>net.ipv4.tcp_wmem</code>. These are Linux implementation details, not universal TCP protocol constants.</p>
+        <p>Learn the exact TCP behavior, including out-of-order data, in the <a class="inline-link" href="../tcp-vs-udp/#buffers">TCP vs UDP lesson → Buffers & ordering</a>.</p>
+      </section>
+      <section class="section" id="tradeoffs" aria-labelledby="tradeoffs-title">
+        <div class="section-number">05 / Architect decisions</div>
+        <h2 id="tradeoffs-title">A buffer is not a free performance boost.</h2>
+        <ul>
+          <li><strong>Capacity vs memory:</strong> larger buffers absorb larger bursts but consume more memory.</li>
+          <li><strong>Throughput vs latency:</strong> queued data may sit longer before being processed; bigger buffers can hide a sustained bottleneck rather than solve it.</li>
+          <li><strong>Backpressure vs dropping:</strong> decide how a producer should behave when the buffer fills. That decision depends on whether data may be lost.</li>
+          <li><strong>Buffer vs cache vs queue:</strong> a buffer smooths timing; a cache retains reusable data for faster access; a queue is a data structure or messaging abstraction often used to implement buffering. These categories can overlap.</li>
+        </ul>
+        <p><strong>Architecture example:</strong> an ingestion service handling short traffic spikes may need a bounded buffer and backpressure. If average incoming traffic permanently exceeds processing capacity, increasing the buffer only postpones overload.</p>
+      </section>
+      <section class="section" id="questions" aria-labelledby="questions-title">
+        <div class="section-number">06 / Active recall</div>
+        <div class="qa-heading"><h2 id="questions-title">Questions you should answer</h2><button class="small-button" id="answers-toggle" type="button" aria-expanded="false">Reveal all answers</button></div>
+        <p class="muted">Answer without reading the explanation. Open each answer only after you have tried.</p>
+        <div class="qa-group"><h3>Fundamentals</h3>
+          <details class="qa"><summary><span class="q-index">01</span>What is a buffer, in one sentence?</summary><p class="answer">Temporary storage for data waiting to be sent, processed, received, or consumed.</p></details>
+          <details class="qa"><summary><span class="q-index">02</span>Why does a buffer help when producer and consumer have different speeds?</summary><p class="answer">It absorbs temporary differences in timing and lets either side operate without immediate synchronization. It cannot fix a permanent capacity mismatch.</p></details>
+          <details class="qa"><summary><span class="q-index">03</span>What is the limitation of the restaurant-counter analogy?</summary><p class="answer">The counter is finite, and no buffer guarantees extra processing capacity. Also, real buffers are not always FIFO.</p></details>
+        </div>
+        <div class="qa-group"><h3>Mechanisms</h3>
+          <details class="qa"><summary><span class="q-index">04</span>What can happen when a bounded buffer becomes full?</summary><p class="answer">The producer may have to wait; the system may apply backpressure, reject or drop work, or spill to another storage tier. The policy is a design choice.</p></details>
+          <details class="qa"><summary><span class="q-index">05</span>Producer: 2 MB/s; consumer: 1.5 MB/s; free space: 10 MB. When does it fill?</summary><p class="answer">Net growth is 0.5 MB/s, so it takes about 10 / 0.5 = 20 seconds under constant rates.</p></details>
+          <details class="qa"><summary><span class="q-index">06</span>How is a buffer different from a cache?</summary><p class="answer">Buffering primarily smooths timing between stages; caching primarily retains data for reuse. They can overlap, and a queue can implement a buffer.</p></details>
+        </div>
+        <div class="qa-group"><h3>Architect choices</h3>
+          <details class="qa"><summary><span class="q-index">07</span>Why might increasing a buffer worsen latency?</summary><p class="answer">More items can wait in the queue. Under sustained load the queued work gets older, even while throughput stays unchanged.</p></details>
+          <details class="qa"><summary><span class="q-index">08</span>Why does receiving a later TCP segment not mean the application can read its bytes immediately?</summary><p class="answer">TCP delivers an ordered byte stream. Missing preceding bytes create a gap; later data can be retained until the gap is filled. See the linked TCP example.</p></details>
+        </div>
+      </section>
+      <section class="section" id="references" aria-labelledby="references-title">
+        <div class="section-number">Further reading</div><h2 id="references-title">Primary sources</h2>
+        <ul class="reference-links">
+          <li><a href="https://www.rfc-editor.org/rfc/rfc9293.html" target="_blank" rel="noopener noreferrer">RFC 9293 — TCP (receive windows, retransmission and ordering)</a></li>
+          <li><a href="https://man7.org/linux/man-pages/man7/tcp.7.html" target="_blank" rel="noopener noreferrer">Linux tcp(7) — tcp_rmem and tcp_wmem</a></li>
+          <li><a href="https://www.postgresql.org/docs/current/runtime-config-resource.html" target="_blank" rel="noopener noreferrer">PostgreSQL — shared_buffers</a></li>
+        </ul>
+      </section>
+    </article>
+  </div>
+</main>
+<footer class="page-footer"><div class="container footer-inner"><span>Architecture Lab · Read. Simulate. Explain.</span><a href="../../">← Back to all concepts</a></div></footer>
+<script type="module" src="../../assets/learning.js"></script>
+<script type="module" src="./demo.js"></script>
+</body>
+</html>

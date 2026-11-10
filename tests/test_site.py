@@ -87,6 +87,23 @@ class WebsiteTests(unittest.TestCase):
         self.assertIn("slug: 'tcp-vs-udp'", registry)
         self.assertTrue((SITE.parent / 'templates/lesson.html').exists())
 
+    def test_buffers_lesson_and_cross_links(self):
+        buffer_page = (SITE / 'labs/buffers/index.html').read_text(encoding='utf-8')
+        tcp_page = (SITE / 'labs/tcp-vs-udp/index.html').read_text(encoding='utf-8')
+        registry = (SITE / 'assets/concepts.js').read_text(encoding='utf-8')
+        self.assertIn("slug: 'buffers'", registry)
+        self.assertIn('id="buffer-demo"', buffer_page)
+        self.assertIn('id="buffer-slots"', buffer_page)
+        self.assertIn('../tcp-vs-udp/#buffers', buffer_page)
+        self.assertIn('id="buffers"', tcp_page)
+        self.assertIn('../buffers/', tcp_page)
+        self.assertIn('0.75×</option>', tcp_page)
+        buffer_refs = Refs()
+        buffer_refs.feed(buffer_page)
+        self.assertGreaterEqual(buffer_refs.questions, 7)
+        self.assertTrue((SITE / 'assets/diagrams.css').is_file())
+        self.assertTrue((SITE / 'labs/buffers/demo.js').is_file())
+
     def test_lesson_structure_and_questions(self):
         content = (SITE / 'labs/tcp-vs-udp/index.html').read_text(encoding='utf-8')
         refs = Refs()

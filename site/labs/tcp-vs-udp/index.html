@@ -8,6 +8,7 @@
   <title>TCP vs UDP — Architecture Lab</title>
   <link rel="stylesheet" href="../../assets/base.css">
   <link rel="stylesheet" href="../../assets/lesson.css">
+  <link rel="stylesheet" href="../../assets/diagrams.css">
   <link rel="stylesheet" href="../../assets/simulator.css">
 </head>
 <body>
@@ -26,10 +27,11 @@
       <a href="#tcp">01 · TCP</a>
       <a href="#udp">02 · UDP</a>
       <a href="#comparison">03 · Comparison</a>
-      <a href="#simulation">04 · Simulator</a>
-      <a href="#decisions">05 · Choosing</a>
-      <a href="#questions">06 · Questions</a>
-      <a href="#takeaways">07 · Takeaways</a>
+      <a href="#buffers">04 · Buffers</a>
+      <a href="#simulation">05 · Simulator</a>
+      <a href="#decisions">06 · Choosing</a>
+      <a href="#questions">07 · Questions</a>
+      <a href="#takeaways">08 · Takeaways</a>
       <a href="#references">References</a>
       <div class="toc-rule"></div>
       <div class="toc-hint">Read the concept.<br>Observe the mechanism.<br>Explain the trade-off.</div>
@@ -101,8 +103,48 @@ sock.close()</code></pre></div>
         </tbody></table></div>
         <p class="fine-print">*TCP provides reliable delivery while the connection remains functional. It cannot guarantee successful delivery if the connection permanently fails.</p>
       </section>
+
+      <section class="section" id="buffers" aria-labelledby="buffers-heading">
+        <div class="section-number">04 / TCP buffers &amp; ordering</div>
+        <h2 id="buffers-heading">What if a TCP segment is lost?</h2>
+        <p>TCP can send <strong>several segments before receiving acknowledgments</strong> because of its sliding-window mechanism. Sending segment 4 does not require segment 3 to have been acknowledged first.</p>
+        <p>A TCP connection typically has <strong>two different buffers</strong> in the operating system:</p>
+        <ul>
+          <li><strong>Send buffer:</strong> holds outgoing data, including data that TCP may need to retransmit until it is acknowledged.</li>
+          <li><strong>Receive buffer:</strong> holds incoming data until the application reads it. Implementations can also retain out-of-order data while missing bytes are recovered.</li>
+        </ul>
+        <figure class="system-figure">
+          <span class="diagram-state">Receiver: segments 1, 2, 4 and 5 arrive; segment 3 is lost.</span>
+          <div class="byte-flow" role="img" aria-label="TCP received 1, 2, 4 and 5, while segment 3 is missing. 4 and 5 must wait for 3 to be retransmitted.">
+            <span class="byte-cell ready"><strong>1</strong><small>In order</small></span>
+            <span class="byte-cell ready"><strong>2</strong><small>In order</small></span>
+            <span class="byte-cell missing"><strong>?</strong><small>Lost 3</small></span>
+            <span class="byte-cell waiting"><strong>4</strong><small>Held</small></span>
+            <span class="byte-cell waiting"><strong>5</strong><small>Held</small></span>
+          </div>
+          <span class="diagram-state">Application can read the contiguous bytes 1 → 2, but not 4 → 5 yet.</span>
+          <div class="byte-flow" role="img" aria-label="Only the first two parts can be provided to the application so far.">
+            <span class="byte-cell ready"><strong>1</strong><small>Readable</small></span>
+            <span class="byte-cell ready"><strong>2</strong><small>Readable</small></span>
+            <span class="byte-cell missing"><strong>⋯</strong><small>Waiting</small></span>
+          </div>
+          <span class="diagram-state">After segment 3 is retransmitted and received:</span>
+          <div class="byte-flow" role="img" aria-label="Parts 1, 2, 3, 4 and 5 now form an ordered stream.">
+            <span class="byte-cell ready"><strong>1</strong><small>In order</small></span>
+            <span class="byte-cell ready"><strong>2</strong><small>In order</small></span>
+            <span class="byte-cell ready"><strong>3</strong><small>Recovered</small></span>
+            <span class="byte-cell ready"><strong>4</strong><small>In order</small></span>
+            <span class="byte-cell ready"><strong>5</strong><small>In order</small></span>
+          </div>
+          <figcaption>Illustration only: the labels represent consecutive byte ranges carried by TCP segments, not application messages. Bytes 1 and 2 may already have been consumed and freed from the buffer.</figcaption>
+        </figure>
+        <h3>Head-of-Line Blocking</h3>
+        <p>Because TCP presents a <strong>reliable, ordered byte stream</strong>, later bytes may already have arrived at the receiver but cannot be read by the application until a gap is filled. This waiting is called <em>Head-of-Line Blocking</em>.</p>
+        <p><strong>Does UDP also have buffers?</strong> Yes. The operating system may buffer received UDP datagrams, but UDP does <strong>not</strong> reconstruct an ordered byte stream or automatically retransmit missing datagrams. A higher-level protocol can add such mechanisms.</p>
+        <p><a class="inline-link" href="../buffers/">Understand buffers in general →</a> (capacity, backpressure, video, file I/O, PostgreSQL).</p>
+      </section>
       <section class="section" id="simulation" aria-labelledby="simulation-heading">
-        <div class="section-number">04 / Interactive lab</div><h2 id="simulation-heading">See the packets move.</h2>
+        <div class="section-number">05 / Interactive lab</div><h2 id="simulation-heading">See the packets move.</h2>
         <p class="sim-intro">Compare what TCP and UDP do when a packet gets lost. Run the animation or move through each step yourself.</p>
         <div class="sim-panel">
           <div class="toolbar" aria-label="Simulation controls">
@@ -131,7 +173,7 @@ sock.close()</code></pre></div>
         </div>
       </section>
       <section class="section" id="decisions" aria-labelledby="decisions-heading">
-        <div class="section-number">05 / Architecture choices</div><h2 id="decisions-heading">When should we choose TCP or UDP?</h2>
+        <div class="section-number">06 / Architecture choices</div><h2 id="decisions-heading">When should we choose TCP or UDP?</h2>
         <p>In most modern applications, <strong>the transport protocol is already selected by the technology or framework being used</strong>.</p>
         <ul><li>An HTTP/1.1 or HTTP/2 client uses TCP.</li><li>An HTTP/3 client uses QUIC over UDP.</li><li>An SSH connection uses TCP.</li></ul>
         <p>However, when designing <strong>low-level networking systems, custom communication protocols, or performance-sensitive applications</strong>, we may need to explicitly choose between TCP and UDP.</p>
@@ -145,7 +187,7 @@ sock.close()</code></pre></div>
         </div>
       </section>
       <section class="section" id="questions" aria-labelledby="questions-heading">
-        <div class="section-number">06 / Active recall</div>
+        <div class="section-number">07 / Active recall</div>
         <div class="qa-heading"><h2 id="questions-heading">Questions you should answer</h2><button class="small-button" id="answers-toggle" type="button" aria-expanded="false">Reveal all answers</button></div>
         <p class="muted">Try explaining each answer aloud before opening it. The goal is to explain the mechanism and justify a design choice — not memorize a definition.</p>
         <div class="qa-group"><h3>Fundamentals</h3>
@@ -159,6 +201,10 @@ sock.close()</code></pre></div>
           <details class="qa"><summary><span class="q-index">06</span>Is UDP always faster, or inherently less secure?</summary><p class="answer">Neither. UDP has less protocol overhead, but performance depends on the whole system and network conditions. Neither UDP nor TCP encrypts data by itself; security comes from additional protocols, such as TLS or QUIC.</p></details>
           <details class="qa"><summary><span class="q-index">07</span>How can HTTP/3 offer reliable communication over UDP?</summary><p class="answer">HTTP/3 uses QUIC over UDP. QUIC implements reliable streams, loss detection, congestion control and TLS 1.3 security above UDP, rather than relying on TCP.</p></details>
         </div>
+        <div class="qa-group"><h3>Buffering and ordering</h3>
+          <details class="qa"><summary><span class="q-index">11</span>Can TCP receive segment 5 even if segment 3 is lost?</summary><p class="answer">Yes. TCP can have multiple segments in flight. The receiver can retain later out-of-order bytes, but it cannot deliver them past the missing gap in its ordered application byte stream.</p></details>
+          <details class="qa"><summary><span class="q-index">12</span>What is the difference between TCP send and receive buffers?</summary><p class="answer">The send buffer supports outgoing data and retransmission of unacknowledged bytes. The receive buffer stores incoming data for application reads and may hold out-of-order data until missing bytes arrive. UDP sockets can also have buffers, without TCP ordering guarantees.</p></details>
+        </div>
         <div class="qa-group"><h3>Architect decisions</h3>
           <details class="qa"><summary><span class="q-index">08</span>Why would a video call prefer losing a frame to retransmitting it?</summary><p class="answer">A retransmitted frame may arrive after its playback deadline, increasing latency or disrupting audio/video synchronization. Timely delivery of current media can matter more than recovering outdated data. Applications still need strategies for acceptable quality.</p></details>
           <details class="qa"><summary><span class="q-index">09</span>Why use TCP for SSH, but often UDP for a DNS query?</summary><p class="answer">SSH needs an ordered, reliable stream for interactive remote access. Traditional DNS queries are usually short independent request/response exchanges, so UDP avoids a transport handshake. DNS also uses TCP when appropriate, including zone transfers and some larger responses.</p></details>
@@ -166,7 +212,7 @@ sock.close()</code></pre></div>
         </div>
       </section>
       <section class="section" id="takeaways" aria-labelledby="takeaways-heading">
-        <div class="section-number">07 / Summary</div><h2 id="takeaways-heading">Key takeaways</h2>
+        <div class="section-number">08 / Summary</div><h2 id="takeaways-heading">Key takeaways</h2>
         <div class="callout"><p><strong>TCP prioritizes reliability and ordered delivery, while UDP provides a lightweight, connectionless transport without built-in delivery guarantees.</strong></p></div>
         <ol>
           <li><strong>TCP is not always slower than UDP.</strong> Performance depends on the application, network conditions, and protocol implementation.</li>

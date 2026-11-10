@@ -26,10 +26,14 @@ site/
     catalog.js                 # Search and rendering
     learning.js                # Copy code, Q&A reveal, active TOC
     step-player.js             # Shared animation playback controller
+    diagrams.css               # Reusable buffer and flow diagrams
   labs/
     tcp-vs-udp/
       index.html               # TCP/UDP guide, comparison, exercises
       simulator.js             # TCP/UDP scenario data + rendering
+    buffers/
+      index.html               # Fundamentals, visual examples, questions
+      demo.js                  # Interactive bounded-buffer experiment
 templates/lesson.html         # Starting point for new lessons
 tests/test_site.py            # Site consistency, links, dependency checks
 .github/workflows/pages.yml  # Validation + GitHub Pages deployment
@@ -61,3 +65,10 @@ Opening the HTML via `file://` does not support the same module-loading behavior
 ## Hosting and safety
 
 The site is public, works under the GitHub Pages project path `/architecture-lab/`, and has no third-party runtime dependencies or tracking. Do not publish internal configurations, credentials or private infrastructure details.
+
+## Buffer lessons
+
+- [Buffers — fundamentals](https://isoardimarius.github.io/architecture-lab/labs/buffers/): producer / buffer / consumer, capacity, backpressure, interactive exercise.
+- [TCP vs UDP — buffering](https://isoardimarius.github.io/architecture-lab/labs/tcp-vs-udp/#buffers): TCP send/receive buffers, out-of-order reassembly, and Head-of-Line Blocking.
+
+The visual diagram components live in `site/assets/diagrams.css` and can be reused for future concepts.
