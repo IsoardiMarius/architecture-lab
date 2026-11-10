@@ -21,17 +21,17 @@
   <header class="hero">
     <div class="eyebrow">Systems / Fundamental concept</div>
     <h1>Buffers</h1>
-    <p class="hero-lede"><strong>A buffer is temporary storage for data while it waits to be sent, received, processed, or consumed.</strong> It helps two parts of a system work at different rates.</p>
+    <p class="hero-lede"><strong>A buffer is a temporary waiting area for data.</strong> It lets one part of a computer continue working while another part is not ready yet.</p>
     <div class="hero-meta"><span>Concept guide</span><span>Interactive capacity demo</span><span>Architecture review questions</span></div>
     <a class="hero-cta" href="#experiment">Try the buffer demo ↓</a>
   </header>
   <div class="lesson-layout">
     <nav class="toc" aria-label="On this page">
       <div class="toc-label">On this page</div>
-      <a href="#definition">01 · The idea</a>
+      <a href="#definition">01 · Start here</a>
       <a href="#mechanism">02 · How it works</a>
       <a href="#experiment">03 · Experiment</a>
-      <a href="#examples">04 · Where we use it</a>
+      <a href="#examples">04 · Real-life examples</a>
       <a href="#tradeoffs">05 · Trade-offs</a>
       <a href="#questions">06 · Questions</a>
       <a href="#references">References</a>
@@ -40,39 +40,58 @@
     </nav>
     <article class="article">
       <section class="section" id="definition" aria-labelledby="definition-title">
-        <div class="section-number">01 / In one sentence</div>
-        <h2 id="definition-title">Why do buffers exist?</h2>
-        <div class="callout"><p>A <strong>buffer temporarily holds data</strong> because the producer and consumer may not run at the same speed or at exactly the same time.</p></div>
-        <p>Think of the counter between a restaurant kitchen and its waiters: a cook can put a finished plate down before a waiter is available to pick it up.</p>
-        <p><strong>Analogy limit:</strong> the counter has a finite capacity. Adding a bigger counter does not make the waiters faster. Also, not every buffer follows a first-in, first-out (FIFO) order.</p>
+        <div class="section-number">01 / Start from zero</div>
+        <h2 id="definition-title">What is a buffer?</h2>
+        <div class="callout"><p>A <strong>buffer</strong> is a temporary place where data waits before another part of a system can use it.</p></div>
+        <p>Imagine watching a video on your phone. Your phone downloads a few seconds of video <em>before</em> displaying them. If your Wi-Fi slows down for a moment, it can keep playing what is already stored. That temporary waiting area is a buffer.</p>
+        <h3>Six words to understand first</h3>
+        <dl class="term-list">
+          <div><dt>Data</dt><dd>Information a computer handles: a photo, a letter, part of a video, or a measurement.</dd></div>
+          <div><dt>Memory (RAM)</dt><dd>The computer's fast, temporary working space. Many buffers live in RAM; some systems also buffer data on disk.</dd></div>
+          <div><dt>Producer</dt><dd>The part that creates or sends data. For a video, it could be the network delivering video pieces.</dd></div>
+          <div><dt>Consumer</dt><dd>The part that uses the data. For a video, it could be the player displaying each frame (picture).</dd></div>
+          <div><dt>Capacity</dt><dd>The maximum amount a buffer can hold. A buffer is never infinitely large.</dd></div>
+          <div><dt>Queue / FIFO</dt><dd>A <em>queue</em> is a waiting line. <em>FIFO</em> means First In, First Out: the first item added is the first one taken out. Not every buffer is FIFO.</dd></div>
+        </dl>
         <figure class="system-figure">
-          <div class="flow-track" role="img" aria-label="A producer sends data into temporary buffer storage, from which a consumer reads it.">
-            <div class="flow-node"><span class="flow-kicker">Step 1</span><strong>Producer</strong><small>Creates data</small></div>
+          <div class="flow-track" role="img" aria-label="Data moves from the producer (sender) to a temporary buffer and then to the consumer (receiver).">
+            <div class="flow-node"><span class="flow-kicker">Step 1 · Sends</span><strong>Producer</strong><small>Creates data</small></div>
             <span class="flow-arrow" aria-hidden="true">→</span>
-            <div class="flow-node flow-node-emphasis"><span class="flow-kicker">Temporary</span><strong>Buffer</strong><small>Holds data</small></div>
+            <div class="flow-node flow-node-emphasis"><span class="flow-kicker">Waits here</span><strong>Buffer</strong><small>Temporary storage</small></div>
             <span class="flow-arrow" aria-hidden="true">→</span>
-            <div class="flow-node"><span class="flow-kicker">Step 2</span><strong>Consumer</strong><small>Reads data</small></div>
+            <div class="flow-node"><span class="flow-kicker">Step 2 · Uses</span><strong>Consumer</strong><small>Processes data</small></div>
           </div>
-          <figcaption>Buffering decouples timing; it does not create processing capacity.</figcaption>
+          <figcaption>The two sides do not always work at the same speed or at the same moment. The buffer separates their timing.</figcaption>
         </figure>
+        <h3>An everyday analogy</h3>
+        <p>In a restaurant, a cook prepares a meal and leaves it on a counter until a waiter picks it up. The cook is the <strong>producer</strong>, the waiter is the <strong>consumer</strong>, and the counter is the <strong>buffer</strong>.</p>
+        <p class="fine-print"><strong>Where the analogy stops:</strong> computer buffers can contain bytes rather than whole meals, can use different ordering rules, and can fill up. A larger counter cannot make the waiter work faster.</p>
       </section>
       <section class="section" id="mechanism" aria-labelledby="mechanism-title">
-        <div class="section-number">02 / Mechanism</div>
-        <h2 id="mechanism-title">Produce → store → consume</h2>
-        <p>The producer puts data into the buffer. The consumer takes data out when it is ready. In a simple bounded queue, the buffer has a fixed number of slots. Real buffers may store bytes, pages, frames, or messages rather than discrete slots.</p>
-        <h3>What happens when speeds differ?</h3>
+        <div class="section-number">02 / The mechanism</div>
+        <h2 id="mechanism-title">Create → wait → use</h2>
+        <ol class="explain-steps">
+          <li><strong>Data arrives.</strong> A producer sends some data. It is not ready to be used immediately.</li>
+          <li><strong>The buffer holds it.</strong> The data occupies some of the limited available space.</li>
+          <li><strong>The consumer takes it.</strong> When the next part is ready, it reads or processes the data, making space for new data.</li>
+        </ol>
+        <h3>What if the two sides work at different speeds?</h3>
         <div class="decision-list">
-          <div class="decision"><b>Producer temporarily faster</b><p>The buffer fills. Short bursts can be absorbed without stopping the whole pipeline immediately.</p></div>
-          <div class="decision"><b>Consumer catches up</b><p>The buffer drains. If empty, the consumer may need to wait for more data.</p></div>
-          <div class="decision"><b>Producer stays faster</b><p>A finite buffer eventually fills. The system must wait, apply backpressure, reject, drop, or spill data, depending on its design.</p></div>
+          <div class="decision"><b>A short rush</b><p>More data arrives than can be used for a few moments. This is a <strong>burst</strong>. The buffer absorbs the temporary excess.</p></div>
+          <div class="decision"><b>Things slow down</b><p>Data leaves the buffer faster than new data arrives. The buffer <strong>drains</strong> (becomes emptier).</p></div>
+          <div class="decision"><b>The rush never stops</b><p>If the producer stays faster, the buffer eventually fills. More memory only delays the problem.</p></div>
         </div>
-        <div class="callout"><p><strong>Capacity example:</strong> producer = 2 MB/s, consumer = 1.5 MB/s. If the buffer starts empty and has 10 MB free, it fills at 0.5 MB/s and reaches capacity after about <strong>20 seconds</strong> of sustained imbalance.</p></div>
-        <p class="fine-print">This simplified calculation assumes steady rates and no overhead or capacity changes.</p>
+        <h3>A small calculation</h3>
+        <p>A <strong>byte</strong> is a basic unit of data. One <strong>MB</strong> (megabyte) is approximately one million bytes. <strong>MB/s</strong> means megabytes per second: a rate, not a storage size.</p>
+        <div class="callout"><p>A producer sends <strong>2 MB/s</strong>, but the consumer can only use <strong>1.5 MB/s</strong>. The buffer gains <strong>0.5 MB every second</strong>. With 10 MB of free space, it fills in about <strong>20 seconds</strong> (10 ÷ 0.5).</p></div>
+        <p class="fine-print">This assumes constant rates, an initially empty buffer, and no overhead. The important lesson: the buffer does not fix a permanent speed difference.</p>
+        <h3>What happens when it is full?</h3>
+        <p>The system needs a rule. It may make the producer <strong>wait</strong>, ask it to <strong>slow down</strong> (called <em>backpressure</em>), <strong>reject or drop</strong> new data, or temporarily store data elsewhere (called <em>spilling to disk</em> when it uses a storage drive). The right choice depends on whether losing data is acceptable.</p>
       </section>
       <section class="section" id="experiment" aria-labelledby="experiment-title">
         <div class="section-number">03 / Interactive lab</div>
         <h2 id="experiment-title">Try a bounded buffer.</h2>
-        <p>Produce data faster than it can be consumed. Observe the occupancy and what happens when the buffer reaches its limit.</p>
+        <p>Each numbered square represents <strong>one piece of data</strong>. A <em>slot</em> is simply one available place in this example. Try these actions in order:</p><ol class="explain-steps"><li>Press <strong>+ Burst of 3</strong> twice. Watch the six places fill.</li><li>Press <strong>+ Produce 1</strong>. Nothing else fits: the buffer is full.</li><li>Press <strong>− Consume 1</strong>. One piece leaves, so a place becomes free.</li></ol>
         <div class="buffer-demo" id="buffer-demo" aria-label="Interactive six-slot buffer demonstration">
           <div class="buffer-demo-head">
             <div><span class="diagram-kicker">CAPACITY</span><strong id="buffer-count" aria-live="polite">0 / 6 slots</strong></div>
@@ -90,52 +109,83 @@
           </div>
           <p class="buffer-event" id="buffer-event" role="status" aria-live="polite">Start by producing an item.</p>
         </div>
-        <p class="fine-print"><strong>Model limitation:</strong> this is a bounded FIFO queue, one possible type of buffer. When full, the demo refuses new items; real systems may block producers, apply backpressure, drop data, or use additional storage. TCP buffers have more complex behavior.</p>
+        <p class="fine-print"><strong>Limit of this simulation:</strong> it models a queue with six places and FIFO (first added, first removed). When full, it refuses new pieces. Real systems can make senders wait, slow them down, drop data or write it to a drive. A TCP receive buffer works differently because TCP also cares about the order of bytes.</p>
       </section>
       <section class="section" id="examples" aria-labelledby="examples-title">
-        <div class="section-number">04 / Real-world examples</div>
-        <h2 id="examples-title">Buffers are everywhere.</h2>
+        <div class="section-number">04 / Three real-world situations</div>
+        <h2 id="examples-title">Where do buffers help?</h2>
+        <div class="real-examples">
+          <article class="real-example" data-real-example>
+            <div class="example-index">Example 01 · Everyday life</div>
+            <h3>Streaming a movie on your phone</h3>
+            <p><strong>Situation:</strong> the video player has already downloaded 5 seconds of video. Your connection briefly stops for 2 seconds.</p>
+            <p><strong>What the buffer does:</strong> the player can keep showing pictures using the video already stored. It does not need to wait for the next download immediately.</p>
+            <p class="example-limit"><strong>Limit:</strong> if the connection stays slow long enough, the stored video runs out and playback may pause. Buffering reduces short interruptions; it cannot create new Internet bandwidth.</p>
+          </article>
+          <article class="real-example" data-real-example>
+            <div class="example-index">Example 02 · A busy website</div>
+            <h3>100 requests arrive, but the server can handle 80</h3>
+            <p><strong>Situation:</strong> an application receives 100 tasks per second for 5 seconds, but workers can finish only 80 per second. A <em>request</em> is work asked of a server; a <em>worker</em> is a program doing that work.</p>
+            <p><strong>What the buffer does:</strong> if a waiting queue accepts all the tasks, about <strong>100 tasks</strong> accumulate (20 extra per second × 5 seconds). The workers can catch up after traffic drops.</p>
+            <p class="example-limit"><strong>Limit:</strong> if 100 tasks keep arriving every second forever, the queue grows until capacity is exhausted. You must reduce incoming work or increase processing capacity.</p>
+          </article>
+          <article class="real-example" data-real-example>
+            <div class="example-index">Example 03 · A TCP connection</div>
+            <h3>One piece is missing, but later pieces arrive</h3>
+            <p><strong>Situation:</strong> a computer sends pieces of data numbered 1, 2, 3, 4, 5. Piece 3 is lost on the network; pieces 4 and 5 still arrive.</p>
+            <p><strong>What the buffer does:</strong> the receiving computer can temporarily keep 4 and 5 while TCP recovers the missing piece 3. The program using the connection then receives the data in the correct order.</p>
+            <p class="example-limit"><strong>Limit:</strong> this ordering can delay a program even when newer data has arrived. This is called <em>Head-of-Line Blocking</em>: newer data waits behind missing older data.</p>
+          </article>
+        </div>
+        <h3>And inside Linux or a database?</h3>
+        <p>An <strong>operating system</strong> (such as Linux) manages a computer's programs, memory and devices. Its <strong>kernel</strong> is the central part that coordinates these resources.</p>
         <div class="table-scroller"><table class="compare">
-          <thead><tr><th scope="col">System</th><th scope="col">What is buffered?</th><th scope="col">Why?</th></tr></thead>
+          <thead><tr><th scope="col">Name</th><th scope="col">What it holds</th><th scope="col">Why it exists</th></tr></thead>
           <tbody>
-            <tr><td>TCP send buffer</td><td>Data to send and/or still awaiting acknowledgment</td><td>Sending and retransmission</td></tr>
-            <tr><td>TCP receive buffer</td><td>Incoming bytes, including potentially out-of-order data</td><td>Reassembly and app reads</td></tr>
-            <tr><td>Video playback buffer</td><td>Media data before display</td><td>Smooth out variable arrival times</td></tr>
-            <tr><td>Linux page cache</td><td>Cached file data in memory</td><td>Avoid repeated storage reads; help with I/O</td></tr>
-            <tr><td>PostgreSQL shared_buffers</td><td>Database data pages in shared memory</td><td>Reduce disk reads and manage data access</td></tr>
+            <tr><td>TCP send buffer</td><td>Outgoing bytes, including some that may need to be sent again.</td><td>Helps send data and recover losses until it is acknowledged (receipt confirmed).</td></tr>
+            <tr><td>TCP receive buffer</td><td>Incoming bytes, including some received out of order.</td><td>Lets the program read an ordered stream. <a class="inline-link" href="../tcp-vs-udp/#buffers">See the TCP example</a>.</td></tr>
+            <tr><td>Video playback buffer</td><td>Video data that has arrived but is not yet displayed.</td><td>Protects against brief variations in download speed.</td></tr>
+            <tr><td>Linux page cache</td><td>Copies of recently used file data in RAM (working memory).</td><td>A <em>cache</em> saves data for reuse, so the computer may avoid reading the slower storage drive again.</td></tr>
+            <tr><td>PostgreSQL shared_buffers</td><td>Database <em>pages</em>, meaning blocks of database data, held in shared RAM.</td><td>Lets the database work with pages in memory instead of fetching every page from storage.</td></tr>
           </tbody>
         </table></div>
-        <p>In Linux, TCP buffer sizing can be influenced by <code>net.ipv4.tcp_rmem</code> and <code>net.ipv4.tcp_wmem</code>. These are Linux implementation details, not universal TCP protocol constants.</p>
-        <p>Learn the exact TCP behavior, including out-of-order data, in the <a class="inline-link" href="../tcp-vs-udp/#buffers">TCP vs UDP lesson → Buffers & ordering</a>.</p>
+        <p><strong>Buffer, queue, and cache are not identical.</strong> A <em>buffer</em> generally smooths timing; a <em>queue</em> organizes waiting items; a <em>cache</em> keeps data that may be reused. One system can combine these functions.</p>
+        <p class="fine-print">If you see Linux settings called <code>tcp_rmem</code> or <code>tcp_wmem</code>, they influence TCP buffer memory. These are operating-system details to explore later; you do not need to understand them to grasp buffering.</p>
       </section>
       <section class="section" id="tradeoffs" aria-labelledby="tradeoffs-title">
-        <div class="section-number">05 / Architect decisions</div>
-        <h2 id="tradeoffs-title">A buffer is not a free performance boost.</h2>
+        <div class="section-number">05 / Why bigger is not always better</div>
+        <h2 id="tradeoffs-title">What does a buffer cost?</h2>
+        <p>A buffer helps with <strong>temporary</strong> mismatches in timing. It does not make a slow consumer faster.</p>
         <ul>
-          <li><strong>Capacity vs memory:</strong> larger buffers absorb larger bursts but consume more memory.</li>
-          <li><strong>Throughput vs latency:</strong> queued data may sit longer before being processed; bigger buffers can hide a sustained bottleneck rather than solve it.</li>
-          <li><strong>Backpressure vs dropping:</strong> decide how a producer should behave when the buffer fills. That decision depends on whether data may be lost.</li>
-          <li><strong>Buffer vs cache vs queue:</strong> a buffer smooths timing; a cache retains reusable data for faster access; a queue is a data structure or messaging abstraction often used to implement buffering. These categories can overlap.</li>
+          <li><strong>Memory:</strong> a larger buffer usually occupies more working memory (RAM).</li>
+          <li><strong>Latency:</strong> this means the time you wait for a result. A long waiting line may increase latency because data spends more time in the buffer.</li>
+          <li><strong>Throughput:</strong> this means the amount of work completed per second. Increasing the waiting area does not automatically increase throughput.</li>
+          <li><strong>Backpressure:</strong> when the system cannot keep up, it slows down or blocks the part sending more work. That protects capacity but may make the sender wait.</li>
+          <li><strong>Dropping:</strong> discarding new or old data may be acceptable for an outdated live-video frame, but not for a payment record.</li>
         </ul>
-        <p><strong>Architecture example:</strong> an ingestion service handling short traffic spikes may need a bounded buffer and backpressure. If average incoming traffic permanently exceeds processing capacity, increasing the buffer only postpones overload.</p>
+        <h3>How would an architect decide?</h3>
+        <p><strong>Short traffic spike:</strong> add a reasonably sized buffer and a policy for what happens when it fills. <strong>Permanent overload:</strong> improve processing capacity, reduce demand, or accept a limited service. Merely raising the buffer limit postpones the problem.</p>
+        <div class="key"><strong>Remember:</strong> buffering buys time, not unlimited processing power.</div>
       </section>
       <section class="section" id="questions" aria-labelledby="questions-title">
         <div class="section-number">06 / Active recall</div>
         <div class="qa-heading"><h2 id="questions-title">Questions you should answer</h2><button class="small-button" id="answers-toggle" type="button" aria-expanded="false">Reveal all answers</button></div>
-        <p class="muted">Answer without reading the explanation. Open each answer only after you have tried.</p>
-        <div class="qa-group"><h3>Fundamentals</h3>
-          <details class="qa"><summary><span class="q-index">01</span>What is a buffer, in one sentence?</summary><p class="answer">Temporary storage for data waiting to be sent, processed, received, or consumed.</p></details>
-          <details class="qa"><summary><span class="q-index">02</span>Why does a buffer help when producer and consumer have different speeds?</summary><p class="answer">It absorbs temporary differences in timing and lets either side operate without immediate synchronization. It cannot fix a permanent capacity mismatch.</p></details>
-          <details class="qa"><summary><span class="q-index">03</span>What is the limitation of the restaurant-counter analogy?</summary><p class="answer">The counter is finite, and no buffer guarantees extra processing capacity. Also, real buffers are not always FIFO.</p></details>
+        <p class="muted">Try to answer aloud before revealing the explanation. Start with ordinary words, then introduce the technical term.</p>
+        <div class="qa-group"><h3>Start simple</h3>
+          <details class="qa"><summary><span class="q-index">01</span>What is a buffer? Give one everyday example.</summary><p class="answer">It is temporary storage where data waits. A video player may download several seconds of video in advance so playback can continue during a short network slowdown.</p></details>
+          <details class="qa"><summary><span class="q-index">02</span>Who are the producer and consumer?</summary><p class="answer">The producer creates or sends data. The consumer reads or uses it. For streaming, the network supplies video and the player displays it.</p></details>
+          <details class="qa"><summary><span class="q-index">03</span>What does buffer capacity mean?</summary><p class="answer">Capacity is the maximum amount of data the buffer can hold. When all its space is occupied, it cannot accept more without another action.</p></details>
         </div>
-        <div class="qa-group"><h3>Mechanisms</h3>
-          <details class="qa"><summary><span class="q-index">04</span>What can happen when a bounded buffer becomes full?</summary><p class="answer">The producer may have to wait; the system may apply backpressure, reject or drop work, or spill to another storage tier. The policy is a design choice.</p></details>
-          <details class="qa"><summary><span class="q-index">05</span>Producer: 2 MB/s; consumer: 1.5 MB/s; free space: 10 MB. When does it fill?</summary><p class="answer">Net growth is 0.5 MB/s, so it takes about 10 / 0.5 = 20 seconds under constant rates.</p></details>
-          <details class="qa"><summary><span class="q-index">06</span>How is a buffer different from a cache?</summary><p class="answer">Buffering primarily smooths timing between stages; caching primarily retains data for reuse. They can overlap, and a queue can implement a buffer.</p></details>
+        <div class="qa-group"><h3>Explain the mechanism</h3>
+          <details class="qa"><summary><span class="q-index">04</span>What happens when a producer stays faster than the consumer?</summary><p class="answer">Data accumulates until the buffer fills. A bigger buffer delays this outcome but does not fix the permanent difference in processing speed.</p></details>
+          <details class="qa"><summary><span class="q-index">05</span>What is backpressure in everyday words?</summary><p class="answer">The system tells the sender to slow down or makes it wait because there is not enough space for more data.</p></details>
+          <details class="qa"><summary><span class="q-index">06</span>What is the difference between a buffer, a queue and a cache?</summary><p class="answer">A buffer temporarily holds data between steps. A queue is an organized waiting line, often first-in-first-out. A cache keeps reusable data so it can be accessed faster. One system may do more than one of these jobs.</p></details>
+          <details class="qa"><summary><span class="q-index">07</span>If 2 MB arrive each second and only 1.5 MB leave, how long to fill 10 MB of free space?</summary><p class="answer">0.5 MB accumulate each second. 10 MB ÷ 0.5 MB/s = approximately 20 seconds, assuming steady rates.</p></details>
+          <details class="qa"><summary><span class="q-index">08</span>Why can a video continue briefly when Wi-Fi stops?</summary><p class="answer">It can play video data that was downloaded earlier and is waiting in a buffer. When the buffer runs out, playback may stop.</p></details>
         </div>
-        <div class="qa-group"><h3>Architect choices</h3>
-          <details class="qa"><summary><span class="q-index">07</span>Why might increasing a buffer worsen latency?</summary><p class="answer">More items can wait in the queue. Under sustained load the queued work gets older, even while throughput stays unchanged.</p></details>
-          <details class="qa"><summary><span class="q-index">08</span>Why does receiving a later TCP segment not mean the application can read its bytes immediately?</summary><p class="answer">TCP delivers an ordered byte stream. Missing preceding bytes create a gap; later data can be retained until the gap is filled. See the linked TCP example.</p></details>
+        <div class="qa-group"><h3>Think like an architect</h3>
+          <details class="qa"><summary><span class="q-index">09</span>Why might a larger buffer make a service feel slower?</summary><p class="answer">It allows more work to wait. Each request can spend longer in line before the application processes it, increasing latency (waiting time).</p></details>
+          <details class="qa"><summary><span class="q-index">10</span>A website is permanently overloaded. Would you only increase its buffer?</summary><p class="answer">No. A buffer can absorb a short spike, but permanent overload requires more processing capacity, less incoming work, or a policy to reject some requests.</p></details>
         </div>
       </section>
       <section class="section" id="references" aria-labelledby="references-title">

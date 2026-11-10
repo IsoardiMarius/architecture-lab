@@ -119,6 +119,23 @@ class WebsiteTests(unittest.TestCase):
         self.assertIn('<option value="2667" selected>0.75×</option>', lesson)
         self.assertIn('<option value="2000">1×</option>', lesson)
 
+    def test_beginner_first_explanations(self):
+        buffers = (SITE / 'labs/buffers/index.html').read_text(encoding='utf-8')
+        tcp = (SITE / 'labs/tcp-vs-udp/index.html').read_text(encoding='utf-8')
+        self.assertIn('<dl class="term-list">', buffers)
+        for term in ('<dt>Data</dt>', '<dt>Memory (RAM)</dt>', '<dt>Producer</dt>',
+                     '<dt>Consumer</dt>', '<dt>Capacity</dt>', '<dt>Queue / FIFO</dt>'):
+            self.assertIn(term, buffers)
+        self.assertEqual(buffers.count('data-real-example'), 3)
+        self.assertIn('Backpressure', buffers)
+        self.assertIn('Limit of this simulation', buffers)
+        self.assertIn('operating system', buffers)
+        self.assertIn('<dt>ACK (acknowledgment)</dt>', tcp)
+        self.assertIn('<dt>Segment</dt>', tcp)
+        self.assertIn('Head-of-Line Blocking', tcp)
+        self.assertIn('id="buffer-demo"', buffers)
+        self.assertIn('<option value="2667" selected>0.75×</option>', tcp)
+
 
 if __name__ == '__main__':
     unittest.main()

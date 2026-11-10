@@ -17,7 +17,7 @@
   <header class="hero">
     <div class="eyebrow">Networking / Transport layer</div>
     <h1>TCP <span>vs</span> UDP</h1>
-    <p class="hero-lede"><strong>TCP (Transmission Control Protocol)</strong> and <strong>UDP (User Datagram Protocol)</strong> are two essential protocols operating at the <strong>Transport Layer (Layer 4 of the OSI model)</strong>. They define how data is exchanged between applications over a network, but they use different mechanisms and provide different guarantees.</p>
+    <p class="hero-lede"><strong>TCP (Transmission Control Protocol)</strong> and <strong>UDP (User Datagram Protocol)</strong> are two essential protocols operating at the <strong>Transport Layer (Layer 4 of the OSI model)</strong>. They define how data is exchanged between applications over a network, but they use different mechanisms and provide different guarantees. <strong>New to networking?</strong> A network connects computers; a protocol is a set of communication rules; the OSI model is a teaching model that divides network tasks into layers. The transport layer is the part concerned with communication between programs.</p>
     <div class="hero-meta"><span>Concept guide</span><span>Interactive simulator</span><span>Architect review questions</span></div>
     <a class="hero-cta" href="#simulation">Try the interactive simulator ↓</a>
   </header>
@@ -41,6 +41,7 @@
         <div class="section-number">01 / Mechanism</div><h2 id="tcp-heading">TCP — Transmission Control Protocol</h2>
         <div class="callout"><p>TCP is a <strong>connection-oriented and reliable protocol</strong>.</p></div>
         <h3>How it works</h3>
+        <p><strong>Client</strong> means the program starting a request; <strong>server</strong> means the program that accepts it. A <strong>handshake</strong> is a short exchange that sets up their connection. <strong>SYN</strong> means synchronize; <strong>ACK</strong> means acknowledgment, or "I received the expected data."</p>
         <ul>
           <li><strong>Connection-oriented:</strong> Before exchanging application data, the client and server establish a connection using a <em>Three-Way Handshake</em> (SYN → SYN-ACK → ACK).</li>
           <li><strong>Reliable delivery:</strong> TCP ensures that data is delivered to the application in the correct order, without duplication, as long as the connection completes successfully.</li>
@@ -62,7 +63,7 @@ sock.connect(("example.com", 80))
 sock.sendall(b"Hello")
 
 sock.close()</code></pre></div>
-        <p class="fine-print">This demonstrates a TCP socket connection, not a valid HTTP request. An HTTP server may reject or ignore the raw message.</p>
+        <p class="fine-print"><strong>Reading the code:</strong> a <em>socket</em> is the programming interface used to communicate over a network; <code>AF_INET</code> means IPv4 addressing; <code>SOCK_STREAM</code> chooses a TCP byte stream; <code>connect()</code> opens the connection; <code>sendall()</code> asks Python to send every byte in the provided text. This is not a complete HTTP web request, so the example server may reject it.</p>
         <div class="key"><strong>Key takeaway:</strong> A TCP connection must be established before application data can be transmitted.</div>
       </section>
       <section class="section" id="udp" aria-labelledby="udp-heading">
@@ -74,10 +75,10 @@ sock.close()</code></pre></div>
           <li><strong>No delivery guarantee:</strong> Datagrams may be lost during transmission.</li>
           <li><strong>No ordering guarantee:</strong> Datagrams may arrive in a different order from the one in which they were sent.</li>
           <li><strong>No automatic retransmission:</strong> UDP does not automatically resend lost datagrams.</li>
-          <li><strong>Low overhead:</strong> UDP has a smaller header (8 bytes compared to TCP's minimum of 20 bytes).</li>
+          <li><strong>Low overhead:</strong> UDP has a smaller <em>header</em> (8 bytes versus at least 20 for TCP). A header contains the control information attached to the data being transported.</li>
         </ul>
         <h3>Common use cases</h3><p>UDP is particularly suitable for applications that prioritize <strong>low latency, real-time communication, or lightweight message exchange</strong>.</p>
-        <ul><li>Online multiplayer games.</li><li>Video conferencing and VoIP.</li><li>Traditional DNS queries.</li><li>HTTP/3 through QUIC, which implements its own reliability mechanisms on top of UDP.</li></ul>
+        <ul><li>Online multiplayer games.</li><li>Video conferencing and VoIP.</li><li>Traditional DNS queries.</li><li>HTTP/3 through QUIC: HTTP is a set of rules for the Web; QUIC is a transport protocol built over UDP that adds reliability and security.</li></ul>
         <h3>Python example</h3>
         <div class="codebox"><div class="code-head"><span>Python · UDP socket</span><button type="button" data-copy="udp-code" aria-label="Copy UDP Python example">Copy</button></div><pre id="udp-code"><code>import socket
 
@@ -87,7 +88,7 @@ sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 sock.sendto(b"Hello", ("example.com", 12345))
 
 sock.close()</code></pre></div>
-        <div class="key"><strong>Key takeaway:</strong> UDP allows applications to send datagrams directly without establishing a transport-layer connection.</div>
+        <p class="fine-print"><strong>Reading the code:</strong> <code>SOCK_DGRAM</code> selects UDP datagrams (independent pieces of data); <code>sendto()</code> sends one datagram to the specified address and port. A <em>port</em> is a number used to direct incoming network traffic to the appropriate application.</p><div class="key"><strong>Key takeaway:</strong> UDP allows applications to send datagrams directly without establishing a transport-layer connection.</div>
       </section>
       <section class="section" id="comparison" aria-labelledby="comparison-heading">
         <div class="section-number">03 / Side by side</div><h2 id="comparison-heading">TCP vs UDP — Comparison</h2>
@@ -106,13 +107,21 @@ sock.close()</code></pre></div>
 
       <section class="section" id="buffers" aria-labelledby="buffers-heading">
         <div class="section-number">04 / TCP buffers &amp; ordering</div>
-        <h2 id="buffers-heading">What if a TCP segment is lost?</h2>
-        <p>TCP can send <strong>several segments before receiving acknowledgments</strong> because of its sliding-window mechanism. Sending segment 4 does not require segment 3 to have been acknowledged first.</p>
-        <p>A TCP connection typically has <strong>two different buffers</strong> in the operating system:</p>
-        <ul>
-          <li><strong>Send buffer:</strong> holds outgoing data, including data that TCP may need to retransmit until it is acknowledged.</li>
-          <li><strong>Receive buffer:</strong> holds incoming data until the application reads it. Implementations can also retain out-of-order data while missing bytes are recovered.</li>
-        </ul>
+        <h2 id="buffers-heading">What happens if one piece of TCP data is lost?</h2>
+        <p>Before this example, four terms:</p>
+        <dl class="term-list">
+          <div><dt>Buffer</dt><dd>A temporary waiting area for data. <a class="inline-link" href="../buffers/">Start with the beginner's buffer lesson</a> if this is new.</dd></div>
+          <div><dt>Segment</dt><dd>A piece of the continuous stream of bytes that TCP sends over the network. The numbers 1 to 5 below are simplified labels, not actual TCP message numbers.</dd></div>
+          <div><dt>ACK (acknowledgment)</dt><dd>A confirmation that certain data has been received. The sender uses these confirmations to know what still needs attention.</dd></div>
+          <div><dt>Kernel and application</dt><dd>The <em>kernel</em> is the central part of the operating system (Linux, for example). The <em>application</em> is the program using the connection, such as a web server.</dd></div>
+        </dl>
+        <h3>Sending is not the same as delivering to the application</h3>
+        <ol class="explain-steps">
+          <li>The client sends several pieces: <strong>1, 2, 3, 4, 5</strong>. It need not wait for an ACK after every piece: TCP can have several pieces <em>in flight</em> (already sent but not yet confirmed), using its <em>sliding window</em> mechanism.</li>
+          <li>Piece <strong>3 is lost</strong> on the network. Pieces <strong>4 and 5 still reach the receiver</strong>.</li>
+          <li>TCP may keep 4 and 5 in the <strong>receive buffer</strong> (temporary incoming storage). But it cannot present those later bytes to the application ahead of the missing bytes from 3.</li>
+          <li>TCP detects the missing data and <strong>retransmits</strong> it (sends it again). When 3 arrives, the application can read the continuous stream in order.</li>
+        </ol>
         <figure class="system-figure">
           <span class="diagram-state">Receiver: segments 1, 2, 4 and 5 arrive; segment 3 is lost.</span>
           <div class="byte-flow" role="img" aria-label="TCP received 1, 2, 4 and 5, while segment 3 is missing. 4 and 5 must wait for 3 to be retransmitted.">
@@ -138,10 +147,17 @@ sock.close()</code></pre></div>
           </div>
           <figcaption>Illustration only: the labels represent consecutive byte ranges carried by TCP segments, not application messages. Bytes 1 and 2 may already have been consumed and freed from the buffer.</figcaption>
         </figure>
-        <h3>Head-of-Line Blocking</h3>
-        <p>Because TCP presents a <strong>reliable, ordered byte stream</strong>, later bytes may already have arrived at the receiver but cannot be read by the application until a gap is filled. This waiting is called <em>Head-of-Line Blocking</em>.</p>
-        <p><strong>Does UDP also have buffers?</strong> Yes. The operating system may buffer received UDP datagrams, but UDP does <strong>not</strong> reconstruct an ordered byte stream or automatically retransmit missing datagrams. A higher-level protocol can add such mechanisms.</p>
-        <p><a class="inline-link" href="../buffers/">Understand buffers in general →</a> (capacity, backpressure, video, file I/O, PostgreSQL).</p>
+        <h3>Why keep 4 and 5 instead of throwing them away?</h3>
+        <p>Because they arrived successfully. Keeping them can avoid unnecessary retransmission. TCP still needs the missing part to restore the correct order.</p>
+        <h3>Two buffers, two jobs</h3>
+        <ul>
+          <li><strong>Send buffer:</strong> temporarily holds outgoing bytes, including data that might need to be sent again until it is acknowledged.</li>
+          <li><strong>Receive buffer:</strong> temporarily holds incoming bytes until the application reads them. It may also keep bytes received out of order.</li>
+        </ul>
+        <h3>Head-of-Line Blocking — in ordinary words</h3>
+        <p><em>Head-of-Line Blocking</em> means <strong>newer data must wait behind older missing data</strong>. Think of a video call: some more recent video data may arrive, but an older missing piece delays the ordered TCP stream. This can create an unwanted pause. The exact visual effect depends on the video application and codec.</p>
+        <p><strong>Does UDP have buffers?</strong> Yes. An operating system can keep UDP datagrams (independent data pieces) in memory until the application reads them. But UDP itself does not require these datagrams to be delivered in order or resend missing ones.</p>
+        <p><a class="inline-link" href="../buffers/">See the full Buffers lesson →</a> for real-world examples, waiting times and what happens when storage is full.</p>
       </section>
       <section class="section" id="simulation" aria-labelledby="simulation-heading">
         <div class="section-number">05 / Interactive lab</div><h2 id="simulation-heading">See the packets move.</h2>

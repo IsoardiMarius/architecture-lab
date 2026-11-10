@@ -12,6 +12,6 @@ export const concepts = [
     title: 'Buffers',
     category: 'Systems',
     topic: 'Fundamentals',
-    summary: 'Temporary storage, producer/consumer speed, bounded capacity, backpressure, and a hands-on buffer experiment.'
+    summary: 'Why computers temporarily store data, what happens when space runs out, and a hands-on experiment with three everyday examples.'
   }
 ];

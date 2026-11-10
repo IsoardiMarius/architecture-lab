@@ -10,6 +10,8 @@ A small, dark-mode, static learning library for infrastructure, networking and c
 - **Reusable components**, not copy-pasted styles or interaction handlers.
 - **No dependencies or build step:** plain HTML, CSS and native ES modules.
 - **Stable URLs** so links from Notion keep working.
+- **Beginner-first lessons:** define every important technical term at first use, even if it seems obvious to an engineer.
+- **Concrete examples:** use two or three real-world situations when they help; explain what happens, why it happens, and the example's limitations.
 - **Progressively extensible:** new concepts are registered in one small file.
 
 ## Structure
@@ -44,7 +46,7 @@ See [`site/assets/README.md`](site/assets/README.md) for component responsibilit
 ## Add a concept
 
 1. Copy `templates/lesson.html` to `site/labs/<slug>/index.html`.
-2. Write the lesson using shared structures in `lesson.css` (`.section`, `.codebox`, `.compare`, `.qa`).
+2. Write the lesson using shared structures in `lesson.css` (`.section`, `.codebox`, `.compare`, `.qa`, `.term-list`, `.real-example`). Introduce new terms in plain English and add two or three concrete examples where useful.
 3. If interactive, include `../../assets/simulator.css`, create a local `simulator.js`, and import `createStepPlayer` from `../../assets/step-player.js`.
 4. Add **one** entry to `site/assets/concepts.js`. The homepage builds cards/search automatically.
 5. Run the tests locally, then push to `main`. The Actions workflow deploys to Pages.
