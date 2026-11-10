@@ -1,6 +1,7 @@
 """Dependency-free checks for the GitHub Pages learning website."""
 from html.parser import HTMLParser
 from pathlib import Path
+import re
 from urllib.parse import urlsplit
 import unittest
 
@@ -30,7 +31,8 @@ class WebsiteTests(unittest.TestCase):
     def test_home_and_lab_exist(self):
         self.assertTrue((SITE / 'index.html').is_file())
         self.assertTrue((SITE / 'labs/tcp-vs-udp/index.html').is_file())
-        self.assertTrue((SITE / 'assets/lesson.css').is_file())
+        for shared in ['base.css', 'lesson.css', 'simulator.css', 'concepts.js', 'learning.js', 'step-player.js']:
+            self.assertTrue((SITE / 'assets' / shared).is_file())
 
     def test_local_links_and_anchors_resolve(self):
         for source in SITE.rglob('*.html'):
@@ -63,6 +65,27 @@ class WebsiteTests(unittest.TestCase):
                     continue  # Primary-source reference links are welcome.
                 self.assertFalse(url.startswith(('http:', 'https:', '//')),
                                  f'Remote script, image or stylesheet: {source}: {url}')
+
+    def test_module_imports_resolve(self):
+        for source in SITE.rglob('*.js'):
+            text = source.read_text(encoding='utf-8')
+            for path in re.findall(r'\bfrom\s+[\"\'](\.[^\"\']+)[\"\']', text):
+                with self.subTest(source=source.relative_to(SITE), path=path):
+                    self.assertTrue((source.parent / path).is_file(), f'Missing imported module: {path}')
+
+    def test_shared_design_system_and_stable_urls(self):
+        base = (SITE / 'assets/base.css').read_text(encoding='utf-8')
+        self.assertIn('color-scheme: dark', base)
+        self.assertIn('--bg:', base)
+        self.assertTrue((SITE / 'labs/tcp-vs-udp/index.html').exists())
+        for page in [SITE / 'index.html', SITE / 'labs/tcp-vs-udp/index.html']:
+            content = page.read_text(encoding='utf-8')
+            self.assertIn('assets/base.css', content)
+            self.assertIn('<meta name="theme-color" content="#0b0f14">', content)
+            self.assertNotIn('<script>', content, 'Shared JavaScript should not be inlined into lessons')
+        registry = (SITE / 'assets/concepts.js').read_text(encoding='utf-8')
+        self.assertIn("slug: 'tcp-vs-udp'", registry)
+        self.assertTrue((SITE.parent / 'templates/lesson.html').exists())
 
     def test_lesson_structure_and_questions(self):
         content = (SITE / 'labs/tcp-vs-udp/index.html').read_text(encoding='utf-8')

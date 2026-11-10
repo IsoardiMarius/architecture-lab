@@ -1,69 +1,63 @@
 # Architecture Lab
 
-A minimal learning library for infrastructure, cloud and networking: concise technical guides, interactive simulators, architecture trade-offs and active-recall questions. Suitable for linking from Notion.
+A small, dark-mode, static learning library for infrastructure, networking and cloud architecture, hosted with GitHub Pages. Each lesson combines clear technical content, interactive demonstrations, architecture choices and active-recall questions.
 
-## What is included?
+**Live site:** https://isoardimarius.github.io/architecture-lab/
 
-- `site/index.html`: clean, searchable concept library.
-- `site/assets/style.css` and `site/assets/catalog.js`: homepage styles and search.
-- `site/assets/lesson.css`: shared lesson styles, including responsive code samples and simulation controls.
-- `site/labs/tcp-vs-udp/index.html`: full TCP/UDP lesson (fundamentals, Python code, comparison, interactive packet simulation, architecture decisions, 10 review questions, RFC references).
-- `.github/workflows/pages.yml`: checks + automatic deployment to GitHub Pages on pushes to `main`.
-- `tests/test_site.py`: ensures relative local links resolve and there are no remote dependencies.
+## Design principles
 
-Everything works as a static site without Node packages, a framework, database, or paid hosting. All internal links are relative and work under a GitHub Pages project prefix. External RFC links are references only: no remote code, fonts, analytics or runtime dependencies.
+- **Dark by default**, minimal contrast-safe design, responsive layout.
+- **Reusable components**, not copy-pasted styles or interaction handlers.
+- **No dependencies or build step:** plain HTML, CSS and native ES modules.
+- **Stable URLs** so links from Notion keep working.
+- **Progressively extensible:** new concepts are registered in one small file.
 
-## First deployment (GitHub Pages)
+## Structure
 
-1. Create a **public** repository named `architecture-lab` at https://github.com/new. Do **not** prepopulate it with a README, license, or `.gitignore`.
-2. Unzip the project and open a terminal in the `architecture-lab` directory.
-3. Run:
+```text
+site/
+  index.html                   # Library homepage
+  assets/
+    base.css                   # Shared dark theme and layout tokens
+    style.css                  # Homepage-only styles
+    lesson.css                 # Reusable lesson components
+    simulator.css              # Reusable network simulation visuals
+    concepts.js                # Catalog metadata for each concept
+    catalog.js                 # Search and rendering
+    learning.js                # Copy code, Q&A reveal, active TOC
+    step-player.js             # Shared animation playback controller
+  labs/
+    tcp-vs-udp/
+      index.html               # TCP/UDP guide, comparison, exercises
+      simulator.js             # TCP/UDP scenario data + rendering
+templates/lesson.html         # Starting point for new lessons
+tests/test_site.py            # Site consistency, links, dependency checks
+.github/workflows/pages.yml  # Validation + GitHub Pages deployment
+```
 
-   ```bash
-   git init
-   git branch -M main
-   git add .
-   git commit -m "feat: launch interactive architecture lab"
-   git remote add origin https://github.com/YOUR_USERNAME/architecture-lab.git
-   git push -u origin main
-   ```
+See [`site/assets/README.md`](site/assets/README.md) for component responsibilities.
 
-4. Go to **Settings → Pages → Build and deployment → Source: GitHub Actions**.
-5. Open the **Actions** tab to check that the `Validate and deploy Architecture Lab` workflow succeeded. If the initial run failed because Pages wasn't enabled yet, rerun the workflow.
-6. Site URL: `https://YOUR_USERNAME.github.io/architecture-lab/`.
-7. Direct TCP vs UDP URL: `https://YOUR_USERNAME.github.io/architecture-lab/labs/tcp-vs-udp/`.
-8. Copy the direct lab URL into Notion as a bookmark/link or try `/embed`. Embeds depend on Notion and website framing policies and cannot be guaranteed; a link always works.
+## Add a concept
 
-> GitHub Free requires a public repository for Pages. Never put passwords, credentials or internal ESSEC architecture details in a public repo. Sites are public even if the repository is private on an eligible paid plan.
+1. Copy `templates/lesson.html` to `site/labs/<slug>/index.html`.
+2. Write the lesson using shared structures in `lesson.css` (`.section`, `.codebox`, `.compare`, `.qa`).
+3. If interactive, include `../../assets/simulator.css`, create a local `simulator.js`, and import `createStepPlayer` from `../../assets/step-player.js`.
+4. Add **one** entry to `site/assets/concepts.js`. The homepage builds cards/search automatically.
+5. Run the tests locally, then push to `main`. The Actions workflow deploys to Pages.
 
-## Local development
+Keep an existing `<slug>` unchanged after sharing the link in Notion. Refer to authoritative standards/RFCs for protocol details and state the limits of any analogy or simulation.
 
-Serve the site locally using:
+## Run locally
 
 ```bash
 python3 -m http.server 8000 --directory site
-# http://localhost:8000
-```
-
-Run tests:
-
-```bash
+# visit http://localhost:8000/
 python3 -m unittest discover -s tests -v
+find site -name '*.js' -exec node --check {} \;
 ```
 
-## Add a new interactive lab
+Opening the HTML via `file://` does not support the same module-loading behavior as a web server. Use the server command above.
 
-1. Create `site/labs/<slug>/index.html` (HTML/CSS/JavaScript with no remote runtime dependencies; use `site/assets/lesson.css` for a consistent look).
-2. Add an article/card to `site/index.html`, pointing to `./labs/<slug>/`.
-3. Ensure the new lab links back to the homepage using `../../`.
-4. Run `python3 -m unittest discover -s tests -v`.
-5. Commit and push to `main`. GitHub Actions validates and publishes it automatically.
+## Hosting and safety
 
-**Important:** Once a lab URL has been shared in Notion, keep its folder slug stable. Rename titles freely, but avoid renaming routes because existing links will break.
-
-## Architecture decision
-
-- **One repository / one GitHub Pages website:** easier maintenance and consistent public links, versus one repo per animation.
-- **Static HTML/JS:** interactive, mobile-friendly, low maintenance, portable to other static hosts.
-- **GitHub Actions:** changes go through Git and automated validations; no manual uploads.
-- **No frameworks for V1:** avoids unnecessary toolchain complexity for a small number of standalone labs; evaluate Astro or Eleventy only if the catalog scales and content management becomes difficult.
+The site is public, works under the GitHub Pages project path `/architecture-lab/`, and has no third-party runtime dependencies or tracking. Do not publish internal configurations, credentials or private infrastructure details.

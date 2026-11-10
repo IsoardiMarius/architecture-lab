@@ -3,13 +3,15 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="theme-color" content="#fafaf9">
+  <meta name="theme-color" content="#0b0f14">
   <meta name="description" content="Understand TCP and UDP: a practical transport-layer guide, interactive network simulation, examples and architecture questions.">
   <title>TCP vs UDP — Architecture Lab</title>
+  <link rel="stylesheet" href="../../assets/base.css">
   <link rel="stylesheet" href="../../assets/lesson.css">
+  <link rel="stylesheet" href="../../assets/simulator.css">
 </head>
 <body>
-<header class="site-header"><nav class="site-nav" aria-label="Site navigation"><a class="brand" href="../../"><span class="brand-mark" aria-hidden="true">A/</span>Architecture Lab</a><a class="back-link" href="../../">← All concepts</a></nav></header>
+<header class="site-header"><nav class="site-nav container" aria-label="Site navigation"><a class="brand" href="../../"><span class="brand-mark" aria-hidden="true">A/</span>Architecture Lab</a><a class="back-link" href="../../">← All concepts</a></nav></header>
 <main class="container">
   <header class="hero">
     <div class="eyebrow">Networking / Transport layer</div>
@@ -110,7 +112,7 @@ sock.close()</code></pre></div>
             </div>
             <div class="toolbar-row"><div class="phase" id="phase">Ready to begin</div><div class="counter" id="count">Step 0 / 9</div></div>
             <div class="progress" role="progressbar" aria-valuemin="0" aria-valuemax="9" aria-valuenow="0" aria-label="Simulation progress"><div class="progressbar" id="progress"></div></div>
-            <div class="toolbar-row"><div class="control-group"><button class="btn btn-primary" id="play">▶ Play</button><button class="btn" id="next">Next step →</button><button class="btn" id="reset">↺ Restart</button></div><span class="fine-print" style="margin:0">A conceptual model, not a packet capture.</span></div>
+            <div class="toolbar-row"><div class="control-group"><button class="btn btn-primary" id="play">▶ Play</button><button class="btn" id="next">Next step →</button><button class="btn" id="reset">↺ Restart</button></div><span class="fine-print" class="fine-print">A conceptual model, not a packet capture.</span></div>
           </div>
           <div class="sim-columns">
             <section class="protocol" aria-label="TCP simulation">
@@ -124,7 +126,7 @@ sock.close()</code></pre></div>
               <div class="readout" role="status" aria-live="polite"><h4 id="udp-title">Waiting</h4><p id="udp-desc">No UDP handshake required.</p></div><div class="eventlog"><div class="logtitle">UDP events</div><div id="udp-log"><div class="logline">No events yet.</div></div></div>
             </section>
           </div>
-          <div class="sim-legend"><span><i class="dot" style="background:#0c8576"></i>TCP</span><span><i class="dot" style="background:#7c60b6"></i>UDP</span><span><i class="dot" style="background:#bf4c51"></i>Simulated loss</span></div>
+          <div class="sim-legend"><span><i class="dot" class="tcp-color"></i>TCP</span><span><i class="dot" class="udp-color"></i>UDP</span><span><i class="dot" class="lost-color"></i>Simulated loss</span></div>
           <p class="sim-note"><strong>Important:</strong> The timelines are illustrative, not synchronized packet captures. TCP sequence numbers, cumulative ACKs, flow control and congestion control are simplified. TCP can retransmit unacknowledged data but cannot guarantee delivery after permanent connection failure. UDP can be enhanced by higher-level protocols such as QUIC.</p>
         </div>
       </section>
@@ -180,71 +182,9 @@ sock.close()</code></pre></div>
     </article>
   </div>
 </main>
-<footer class="page-footer"><div class="container"><span>Architecture Lab · Read. Simulate. Explain.</span><a href="../../">← Back to all concepts</a></div></footer>
+<footer class="page-footer"><div class="container footer-inner"><span>Architecture Lab · Read. Simulate. Explain.</span><a href="../../">← Back to all concepts</a></div></footer>
 
-<script>
-(()=>{
-  'use strict';
-  const $=id=>document.getElementById(id);
-  const pk=(label,direction='right',lost=false)=>({label,direction,lost});
-  const ev=(title,description,packet=null)=>({title,description,packet});
-  let scenario='loss',step=-1,playing=false,timer=null,activeAnimations=[];
-  function stages(){
-    const loss=scenario==='loss';
-    return [
-      {name:'1 · TCP handshake / UDP direct send',tcp:ev('SYN →','The client requests a TCP connection.',pk('SYN')),udp:ev('Datagram D1 →','UDP sends application data immediately — no handshake.',pk('D1'))},
-      {name:'2 · Server response / second datagram',tcp:ev('← SYN-ACK','The server acknowledges SYN and responds with its own SYN.',pk('SYN-ACK','left')),udp:loss?ev('D2 lost in transit','This UDP datagram never arrives at the server.',pk('D2','right',true)):ev('Datagram D2 →','The second UDP datagram arrives.',pk('D2'))},
-      {name:'3 · TCP handshake complete',tcp:ev('ACK →','The client sends the final ACK. The TCP connection is established.',pk('ACK')),udp:ev('Datagram D3 →',loss?'D3 arrives even though D2 was lost.':'The third UDP datagram arrives.',pk('D3'))},
-      {name:'4 · TCP data transmission',tcp:ev('DATA 1 →','The client sends the first TCP data segment.',pk('DATA 1')),udp:ev('No UDP acknowledgment','UDP does not provide built-in ACKs for datagram delivery.')},
-      {name:'5 · TCP acknowledgment',tcp:ev('← ACK 1','The server acknowledges receipt of the first data segment.',pk('ACK 1','left')),udp:ev(loss?'D2 still missing':'No loss detected',loss?'UDP does not retransmit D2 by itself.':'UDP provides no transport-layer ACKs.')},
-      {name:'6 · Second TCP data segment',tcp:loss?ev('DATA 2 lost','The second TCP segment is lost in the network.',pk('DATA 2','right',true)):ev('DATA 2 →','The second TCP segment arrives.',pk('DATA 2')),udp:ev('No automatic recovery',loss?'The lost UDP datagram stays missing.':'UDP communication remains connectionless.')},
-      {name:loss?'7 · TCP detects an unacknowledged segment':'7 · Successful acknowledgment',tcp:loss?ev('Retransmission timeout','The expected ACK does not arrive; TCP’s retransmission timer expires.'):ev('← ACK 2','The server acknowledges the second data segment.',pk('ACK 2','left')),udp:ev('No UDP recovery mechanism',loss?'UDP itself cannot retransmit D2.':'UDP sends no automatic delivery confirmations.')},
-      {name:loss?'8 · TCP retransmits':'8 · TCP transfer complete',tcp:loss?ev('DATA 2 retransmitted →','TCP resends the missing segment.',pk('DATA 2 ↻')):ev('TCP segments acknowledged','Both TCP data segments have been received and acknowledged.'),udp:ev(loss?'D2 remains lost':'UDP datagrams sent',loss?'An application-level protocol could handle loss, but UDP does not.':'All three UDP datagrams have arrived in this scenario.')},
-      {name:'9 · Final outcome',tcp:loss?ev('← ACK 2: received','The server acknowledges the retransmitted segment.',pk('ACK 2','left')):ev('Reliable delivery in this run','The sent TCP data was acknowledged.'),udp:ev(loss?'D1 and D3 arrived; D2 was lost':'D1, D2, D3 arrived',loss?'UDP performed no retransmission.':'No UDP packet loss was simulated in this run.')}
-    ];
-  }
-  let timeline=stages();
-  const clearTimer=()=>{if(timer!==null){clearTimeout(timer);timer=null}};
-  function cancelPackets(){activeAnimations.forEach(a=>{try{a.cancel()}catch{}});activeAnimations=[];for(const proto of ['tcp','udp']){$(proto+'-packet').replaceChildren();$(proto+'-cross').classList.remove('show')}}
-  function showPacket(proto,p){if(!p)return;const host=$(proto+'-packet'),track=$(proto+'-track'),tag=document.createElement('div');tag.className='packet'+(p.lost?' lost':'');tag.textContent=p.label;host.appendChild(tag);const start=p.direction==='right'?22:78,end=p.lost?(p.direction==='right'?59:41):(p.direction==='right'?78:22);tag.style.left=start+'%';const dur=Math.min(1150,Number($('speed').value)*.55);if(window.matchMedia('(prefers-reduced-motion: reduce)').matches){tag.style.left=end+'%';if(p.lost)$(proto+'-cross').classList.add('show');return}
-    const anim=tag.animate([{left:start+'%',opacity:.75},{left:end+'%',opacity:1}],{duration:dur,easing:'ease-in-out',fill:'forwards'});activeAnimations.push(anim);anim.onfinish=()=>{tag.style.left=end+'%';anim.cancel();if(p.lost)$(proto+'-cross').classList.add('show')};
-  }
-  function writeLog(proto){const host=$(proto+'-log');host.replaceChildren();if(step<0){const line=document.createElement('div');line.className='logline';line.textContent='No events yet.';host.appendChild(line);return}for(let i=Math.max(0,step-2);i<=step;i++){const line=document.createElement('div');line.className='logline'+(i===step?' current':'');line.textContent=`${i+1}. ${timeline[i][proto].title}`;host.appendChild(line)}}
-  function render(){cancelPackets();$('phase').textContent=step<0?'Ready to begin':timeline[step].name;$('count').textContent=`Step ${step+1} / ${timeline.length}`;$('progress').style.width=(step+1)/timeline.length*100+'%';document.querySelector('[role="progressbar"]').setAttribute('aria-valuenow',String(step+1));for(const proto of ['tcp','udp']){const current=step<0?null:timeline[step][proto];$(proto+'-title').textContent=current?current.title:'Waiting';$(proto+'-desc').textContent=current?current.description:(proto==='tcp'?'No TCP connection established yet.':'No UDP handshake required.');writeLog(proto);if(current)showPacket(proto,current.packet)}$('next').disabled=step>=timeline.length-1;if(step>=timeline.length-1){playing=false;clearTimer()}$('play').textContent=playing?'Ⅱ Pause':step>=timeline.length-1?'↻ Replay':step<0?'▶ Play':'▶ Continue'}
-  function pause(){playing=false;clearTimer();activeAnimations.forEach(a=>{try{a.pause()}catch{}});$('play').textContent=step>=timeline.length-1?'↻ Replay':step<0?'▶ Play':'▶ Continue'}
-  function next(){if(step<timeline.length-1){step++;render()}}
-  function tick(){if(!playing)return;if(step>=timeline.length-1){pause();return}next();if(playing)timer=setTimeout(tick,Number($('speed').value))}
-  function toggle(){if(playing){pause();return}if(step>=timeline.length-1)step=-1;playing=true;tick()}
-  function reset(){pause();step=-1;render()}
-  function choose(value){scenario=value;timeline=stages();$('loss').setAttribute('aria-pressed',String(value==='loss'));$('normal').setAttribute('aria-pressed',String(value==='normal'));reset()}
-  $('play').addEventListener('click',toggle);$('next').addEventListener('click',()=>{pause();next()});$('reset').addEventListener('click',reset);$('loss').addEventListener('click',()=>choose('loss'));$('normal').addEventListener('click',()=>choose('normal'));$('speed').addEventListener('change',()=>{if(playing){clearTimer();timer=setTimeout(tick,Number($('speed').value))}});document.addEventListener('visibilitychange',()=>{if(document.hidden&&playing)pause()});render();
-})();
-</script>
-
-<script>
-(() => {
-  const toggle = document.getElementById('answers-toggle');
-  const answers = [...document.querySelectorAll('.qa')];
-  toggle.addEventListener('click', () => {
-    const reveal = answers.some(item => !item.open);
-    answers.forEach(item => { item.open = reveal; });
-    toggle.textContent = reveal ? 'Hide all answers' : 'Reveal all answers';
-    toggle.setAttribute('aria-expanded', String(reveal));
-  });
-  for (const copy of document.querySelectorAll('[data-copy]')) {
-    copy.addEventListener('click', async () => {
-      const text = document.getElementById(copy.dataset.copy)?.textContent;
-      if (!text) return;
-      try {
-        await navigator.clipboard.writeText(text);
-        copy.textContent = 'Copied!';
-        setTimeout(() => { copy.textContent = 'Copy'; }, 1600);
-      } catch {
-        copy.textContent = 'Select and copy';
-      }
-    });
-  }
-})();
-</script>
+<script type="module" src="../../assets/learning.js"></script>
+<script type="module" src="./simulator.js"></script>
 </body>
 </html>

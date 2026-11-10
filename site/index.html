@@ -3,17 +3,18 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="theme-color" content="#fafaf9">
+  <meta name="theme-color" content="#0b0f14">
   <meta name="description" content="Architecture Lab: calm, practical guides and interactive simulations for infrastructure, networking and cloud architecture.">
   <title>Architecture Lab — Learn by understanding</title>
+  <link rel="stylesheet" href="./assets/base.css">
   <link rel="stylesheet" href="./assets/style.css">
 </head>
 <body>
-  <header class="topbar">
-    <div class="wrap topbar-inner">
+  <header class="site-header">
+    <nav class="container site-nav">
       <a class="brand" href="./" aria-label="Architecture Lab, homepage"><span class="brand-mark" aria-hidden="true">A/</span>Architecture Lab</a>
       <a class="toplink" href="#labs">Explore concepts ↓</a>
-    </div>
+    </nav>
   </header>
   <main class="wrap">
     <section class="hero" aria-labelledby="page-title">
@@ -27,21 +28,12 @@
         <div><h2 id="labs-title">The library</h2><p>A growing collection of concepts, one practical lesson at a time.</p></div>
         <input class="search" type="search" id="search" aria-label="Search concepts" placeholder="Search a concept…">
       </div>
-      <div class="cards" id="cards">
-        <article class="card" data-lab>
-          <span class="card-number" aria-hidden="true">01</span>
-          <div class="card-main">
-            <div class="card-top"><span class="pill">Networking</span><span class="pill">Transport layer</span></div>
-            <h3>TCP vs UDP</h3>
-            <p>A practical guide to reliable streams, datagrams, packet loss and transport choices — with an interactive simulator and review questions.</p>
-          </div>
-          <a class="entry" href="./labs/tcp-vs-udp/" aria-label="Open TCP vs UDP lesson">View lesson ↗</a>
-        </article>
-      </div>
-      <p class="empty" id="empty" role="status">No concepts match this search.</p>
+      <div class="cards" id="cards" aria-live="polite"></div>
+      <noscript><p class="fine-print">JavaScript is required for the searchable catalog. <a href="./labs/tcp-vs-udp/">Open TCP vs UDP</a>.</p></noscript>
+      <p class="empty" id="empty" role="status" hidden>No concepts match this search.</p>
     </section>
   </main>
-  <footer class="wrap footer"><span>Architecture Lab · Learn by observing, then explaining.</span><span>Independent notes · No account · No tracking</span></footer>
-  <script src="./assets/catalog.js" defer></script>
+  <footer class="page-footer"><div class="container footer-inner"><span>Architecture Lab · Learn by observing, then explaining.</span><span>Independent notes · No account · No tracking</span></div></footer>
+  <script type="module" src="./assets/catalog.js"></script>
 </body>
 </html>

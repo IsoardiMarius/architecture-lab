@@ -1,0 +1,45 @@
+/* Reusable simulator UI. Keep scenario-specific animation logic in each lab. */
+.sim-intro { color: var(--muted); margin-bottom: 20px; }
+.sim-panel { border: 1px solid var(--border); border-radius: 14px; background: var(--surface); padding: 18px; margin-top: 20px; }
+.toolbar { display: grid; gap: 16px; }
+.toolbar-row { display: flex; justify-content: space-between; align-items: center; gap: 15px; flex-wrap: wrap; }
+.sectionlabel { color: var(--muted); font-size: 10px; font-weight: 800; letter-spacing: .11em; text-transform: uppercase; }
+.control-group { display: flex; align-items: center; flex-wrap: wrap; gap: 7px; }
+.toolbar select { background: var(--surface-raised); color: var(--text); border: 1px solid var(--border-strong); border-radius: 8px; padding: 7px 9px; font-size: 12px; }
+.phase { font-weight: 730; font-size: 13px; }
+.counter { color: var(--muted); font-size: 12px; }
+.progress { height: 4px; background: var(--border); overflow: hidden; border-radius: 3px; }
+.progressbar { height: 100%; width: 0; background: var(--accent); transition: width .25s; }
+.sim-columns { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 11px; margin-top: 15px; }
+.protocol { border: 1px solid var(--border); border-radius: 12px; padding: 14px; min-width: 0; }
+.protocol-head { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; }
+.article .protocol h3 { font-size: 21px; letter-spacing: -.04em; margin: 0; color: var(--tcp); }
+.article .protocol.udp h3 { color: var(--udp); }
+.protocol .detail { color: var(--muted); font-size: 9px; text-transform: uppercase; letter-spacing: .08em; font-weight: 800; text-align: right; }
+.protocol-intro { color: var(--muted); font-size: 11px; margin: 3px 0 12px !important; min-height: 34px; }
+.network { position: relative; height: 137px; background: var(--surface-soft); border: 1px solid var(--border); border-radius: 9px; overflow: hidden; }
+.node { position: absolute; top: 22px; text-align: center; z-index: 2; transform: translateX(-50%); width: 66px; }
+.node.client { left: 14%; }.node.server { left: 86%; }
+.node-icon { width: 43px; height: 43px; border: 1px solid var(--border-strong); border-radius: 10px; background: var(--surface-raised); display: grid; place-items: center; font-size: 23px; margin: 0 auto 5px; }
+.node-name { color: var(--muted); font-size: 11px; font-weight: 740; }
+.wire { position: absolute; left: 22%; right: 22%; top: 43px; border-top: 2px dashed #4b6770; }
+.network-sub { position: absolute; bottom: 10px; width: 100%; text-align: center; color: var(--muted-dim); font-size: 10px; }
+.packet { position: absolute; left: 20%; top: 30px; z-index: 5; min-width: 44px; max-width: 125px; padding: 6px 8px; border-radius: 6px; background: var(--tcp); color: #081a14; text-align: center; transform: translateX(-50%); white-space: nowrap; font-size: 11px; font-weight: 800; }
+.udp .packet { background: var(--udp); color: #1f132c; }
+.packet.lost { background: var(--danger); color: #271519; }
+.packet-icon { display: none; position: absolute; top: 28px; left: 60%; font-size: 20px; color: var(--danger); font-weight: 900; }
+.packet-icon.show { display: block; }
+.readout { min-height: 88px; margin-top: 13px; }
+.readout h4 { font-size: 13px; margin: 0 0 5px; font-weight: 740; }
+.readout p { color: var(--muted); font-size: 12px; margin: 0; }
+.eventlog { margin-top: 10px; padding-top: 10px; border-top: 1px solid var(--border); min-height: 82px; }
+.eventlog .logtitle { font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: .09em; color: var(--muted); margin-bottom: 4px; }
+.logline { color: var(--muted-dim); font-size: 10px; line-height: 1.5; margin: 2px 0; }
+.logline.current { color: var(--accent); font-weight: 700; }
+.sim-legend { display: flex; align-items: center; flex-wrap: wrap; gap: 14px; color: var(--muted); font-size: 11px; margin: 14px 0 7px; }
+.dot { display: inline-block; height: 7px; width: 7px; border-radius: 50%; vertical-align: middle; margin-right: 4px; }
+.sim-note { color: var(--muted); font-size: 11px; line-height: 1.7; margin: 0 !important; }
+.sim-note strong { color: var(--text); }
+@media (max-width: 800px) { .sim-columns { grid-template-columns: 1fr; } .readout { min-height: auto; } .eventlog { min-height: 70px; } }
+
+.dot.tcp-color { background: var(--tcp); }.dot.udp-color { background: var(--udp); }.dot.lost-color { background: var(--danger); }
