@@ -97,6 +97,11 @@ class WebsiteTests(unittest.TestCase):
         for control in ['loss', 'normal', 'speed', 'play', 'next', 'reset', 'phase', 'count']:
             self.assertIn(control, refs.ids)
 
+    def test_default_simulation_speed(self):
+        lesson = (SITE / 'labs/tcp-vs-udp/index.html').read_text(encoding='utf-8')
+        self.assertIn('<option value="2667" selected>0.75×</option>', lesson)
+        self.assertIn('<option value="2000">1×</option>', lesson)
+
 
 if __name__ == '__main__':
     unittest.main()
