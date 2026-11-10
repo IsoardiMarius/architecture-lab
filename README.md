@@ -1,16 +1,17 @@
 # Architecture Lab
 
-Interactive and lightweight infrastructure diagrams, suitable for sharing as permanent GitHub Pages URLs in Notion.
+A minimal learning library for infrastructure, cloud and networking: concise technical guides, interactive simulators, architecture trade-offs and active-recall questions. Suitable for linking from Notion.
 
 ## What is included?
 
-- `site/index.html`: public catalog / homepage (with a concept search field).
-- `site/assets/`: shared homepage CSS/JavaScript.
-- `site/labs/tcp-vs-udp/index.html`: self-contained interactive lab (Play/Pause, step-by-step, packet loss, no packet loss, playback speed).
+- `site/index.html`: clean, searchable concept library.
+- `site/assets/style.css` and `site/assets/catalog.js`: homepage styles and search.
+- `site/assets/lesson.css`: shared lesson styles, including responsive code samples and simulation controls.
+- `site/labs/tcp-vs-udp/index.html`: full TCP/UDP lesson (fundamentals, Python code, comparison, interactive packet simulation, architecture decisions, 10 review questions, RFC references).
 - `.github/workflows/pages.yml`: checks + automatic deployment to GitHub Pages on pushes to `main`.
 - `tests/test_site.py`: ensures relative local links resolve and there are no remote dependencies.
 
-Everything works as a static site without Node packages, a framework, database, or paid hosting. All links are relative and work under a GitHub Pages project prefix.
+Everything works as a static site without Node packages, a framework, database, or paid hosting. All internal links are relative and work under a GitHub Pages project prefix. External RFC links are references only: no remote code, fonts, analytics or runtime dependencies.
 
 ## First deployment (GitHub Pages)
 
@@ -37,7 +38,7 @@ Everything works as a static site without Node packages, a framework, database, 
 
 ## Local development
 
-Open `site/index.html` directly in a browser, or serve it locally using:
+Serve the site locally using:
 
 ```bash
 python3 -m http.server 8000 --directory site
@@ -52,7 +53,7 @@ python3 -m unittest discover -s tests -v
 
 ## Add a new interactive lab
 
-1. Create `site/labs/<slug>/index.html` (self-contained HTML/CSS/JavaScript preferred; no remote dependencies).
+1. Create `site/labs/<slug>/index.html` (HTML/CSS/JavaScript with no remote runtime dependencies; use `site/assets/lesson.css` for a consistent look).
 2. Add an article/card to `site/index.html`, pointing to `./labs/<slug>/`.
 3. Ensure the new lab links back to the homepage using `../../`.
 4. Run `python3 -m unittest discover -s tests -v`.

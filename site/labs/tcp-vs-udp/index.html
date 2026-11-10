@@ -3,56 +3,185 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="theme-color" content="#0b1325">
-  <meta name="description" content="Interactive TCP vs UDP network packet simulator with handshake, delivery acknowledgments, packet loss and retransmission.">
-  <title>TCP vs UDP — Interactive Network Lab</title>
-  <style>
-    :root{color-scheme:dark;--bg:#09111f;--panel:#111d30;--panel2:#16243a;--ink:#f3f7ff;--muted:#a3b3ca;--line:#2d405c;--tcp:#2ed4bc;--udp:#b995ff;--err:#ff6c78;--ok:#67e0ae;--accent:#7aa5ff;--shadow:0 20px 50px rgba(0,0,0,.18)}
-    *{box-sizing:border-box}body{margin:0;font:15px/1.55 system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;color:var(--ink);background:radial-gradient(ellipse at 12% -8%,#183354 0,transparent 36%),var(--bg)}
-    button,select{font:inherit}button{cursor:pointer}button:focus-visible,select:focus-visible{outline:3px solid #d6b4ff;outline-offset:3px}
-    .wrap{max-width:1160px;margin:auto;padding:26px clamp(14px,3vw,32px) 38px}.eyebrow{color:#a2c0f8;font-size:11px;font-weight:800;letter-spacing:.14em;text-transform:uppercase}.header{display:flex;gap:18px;align-items:end;justify-content:space-between;flex-wrap:wrap;margin-bottom:22px}.header h1{font-size:clamp(25px,3vw,42px);letter-spacing:-.045em;margin:6px 0 4px;line-height:1.1}.subtitle{color:var(--muted);margin:0}.hint{color:var(--muted);font-size:12px}.chip{font-size:11px;font-weight:750;border:1px solid var(--line);border-radius:999px;padding:6px 11px;color:#bfd0e8;background:#15263e;white-space:nowrap}
-    .panel{background:var(--panel);border:1px solid var(--line);border-radius:16px;box-shadow:var(--shadow)}.toolbar{padding:16px 19px;margin-bottom:14px;display:grid;gap:14px}.toolbar-row{display:flex;gap:12px;justify-content:space-between;align-items:center;flex-wrap:wrap}.toolbar-row .sectionlabel{font-size:11px;color:var(--muted);font-weight:800;letter-spacing:.12em;text-transform:uppercase;margin-right:5px}.control-group{display:flex;align-items:center;gap:8px;flex-wrap:wrap}.btn{min-height:39px;padding:8px 13px;background:#1e304a;border:1px solid #3a5272;color:var(--ink);border-radius:9px;font-size:13px;font-weight:700}.btn:hover:not(:disabled){background:#2a405e}.btn[aria-pressed="true"]{border-color:var(--accent);background:#223f65;color:#e0ebff}.btn-primary{background:#4f80e8;border-color:#4f80e8;color:white}.btn-primary:hover:not(:disabled){background:#6494ef}.btn:disabled{opacity:.4;cursor:default}select{padding:7px 11px;border-radius:9px;border:1px solid #3a5272;background:#1e304a;color:white;font-weight:650;font-size:13px}.phase{font-weight:750;font-size:14px}.counter{color:var(--muted);font-size:12px}.progress{height:6px;border-radius:100px;background:#283955;overflow:hidden}.progressbar{height:100%;width:0;background:linear-gradient(90deg,var(--tcp),#7d98fc);transition:width .25s}
-    .columns{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:14px}.protocol{padding:17px;min-width:0;border-top:3px solid var(--tcp)}.protocol.udp{border-top-color:var(--udp)}.protocol-head{display:flex;align-items:baseline;justify-content:space-between;gap:8px}.protocol h2{margin:0;font-size:23px;letter-spacing:-.04em;color:var(--tcp)}.protocol.udp h2{color:var(--udp)}.protocol .detail{font-size:11px;color:var(--muted);font-weight:800;letter-spacing:.08em;text-align:right}.protocol-intro{font-size:12px;color:var(--muted);margin:1px 0 12px}
-    .network{position:relative;height:175px;background:radial-gradient(ellipse at center,#1a304a 0,#0e1c2f 80%);border:1px solid var(--line);border-radius:12px;overflow:hidden}.node{position:absolute;top:27px;text-align:center;z-index:2;transform:translateX(-50%);width:80px}.node.client{left:14%}.node.server{left:86%}.node-icon{height:53px;width:59px;margin:0 auto 6px;border:1px solid #47607f;border-radius:11px;display:grid;place-items:center;background:#233852;font-size:29px}.node-name{font-size:12px;font-weight:750}.wire{position:absolute;left:22%;right:22%;top:55px;border-top:2px dashed #476481}.network-sub{position:absolute;bottom:13px;text-align:center;width:100%;color:#8ca6c6;font-size:11px}.packet{position:absolute;top:39px;left:20%;z-index:5;min-width:46px;max-width:130px;text-align:center;padding:7px 9px;color:#081b22;background:var(--tcp);border-radius:7px;box-shadow:0 4px 16px #0007;font-size:12px;font-weight:900;white-space:nowrap;transform:translateX(-50%)}.udp .packet{background:var(--udp);color:#150d26}.packet.lost{background:var(--err);color:#23070b}.packet-icon{position:absolute;top:33px;left:60%;font-size:22px;color:var(--err);font-weight:950;display:none}.packet-icon.show{display:block}
-    .readout{margin-top:14px;min-height:101px}.readout h3{font-size:15px;margin:0 0 5px;letter-spacing:-.01em}.readout p{font-size:13px;color:var(--muted);margin:0}.eventlog{margin-top:13px;padding-top:12px;border-top:1px solid var(--line);min-height:108px}.eventlog .logtitle{font-size:11px;font-weight:800;letter-spacing:.12em;color:var(--muted);text-transform:uppercase;margin-bottom:4px}.logline{font-size:11px;color:#91a7c1;margin:2px 0;line-height:1.45}.logline.current{font-weight:800;color:#e4edff}
-    .footer{margin-top:14px;padding:15px 18px}.legend{display:flex;gap:14px;flex-wrap:wrap;font-size:12px;color:var(--muted);margin:8px 0}.dot{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:5px}.note{font-size:12px;color:var(--muted);line-height:1.7}.note strong{color:#e7efff}.sr-only{position:absolute!important;height:1px;width:1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap}
-    @media(max-width:720px){.columns{grid-template-columns:1fr}.wrap{padding-top:18px}.toolbar{padding:14px}.network{height:160px}.eventlog{min-height:92px}.readout{min-height:75px}}
-    @media(prefers-reduced-motion:reduce){.progressbar{transition:none}}
-  </style>
+  <meta name="theme-color" content="#fafaf9">
+  <meta name="description" content="Understand TCP and UDP: a practical transport-layer guide, interactive network simulation, examples and architecture questions.">
+  <title>TCP vs UDP — Architecture Lab</title>
+  <link rel="stylesheet" href="../../assets/lesson.css">
 </head>
 <body>
-<main class="wrap">
-  <nav style="margin-bottom:15px"><a href="../../" style="color:#a9d8ff;text-decoration:none;font-size:13px;font-weight:750">← All architecture labs</a></nav>
-  <header class="header">
-    <div><div class="eyebrow">Network Architecture · Layer 4</div><h1>TCP <span style="color:#8da7cb">vs</span> UDP</h1><p class="subtitle">Interactive packet journey — connection, data delivery, loss and recovery.</p></div>
-    <div class="chip">Standalone · No backend</div>
+<header class="site-header"><nav class="site-nav" aria-label="Site navigation"><a class="brand" href="../../"><span class="brand-mark" aria-hidden="true">A/</span>Architecture Lab</a><a class="back-link" href="../../">← All concepts</a></nav></header>
+<main class="container">
+  <header class="hero">
+    <div class="eyebrow">Networking / Transport layer</div>
+    <h1>TCP <span>vs</span> UDP</h1>
+    <p class="hero-lede"><strong>TCP (Transmission Control Protocol)</strong> and <strong>UDP (User Datagram Protocol)</strong> are two essential protocols operating at the <strong>Transport Layer (Layer 4 of the OSI model)</strong>. They define how data is exchanged between applications over a network, but they use different mechanisms and provide different guarantees.</p>
+    <div class="hero-meta"><span>Concept guide</span><span>Interactive simulator</span><span>Architect review questions</span></div>
+    <a class="hero-cta" href="#simulation">Try the interactive simulator ↓</a>
   </header>
-  <section class="toolbar panel" aria-label="Simulation controls">
-    <div class="toolbar-row">
-      <div class="control-group"><span class="sectionlabel">Scenario</span><button class="btn" id="loss" aria-pressed="true">With packet loss</button><button class="btn" id="normal" aria-pressed="false">No packet loss</button></div>
-      <div class="control-group"><label class="sectionlabel" for="speed">Speed</label><select id="speed"><option value="2800">0.75×</option><option value="2000" selected>1×</option><option value="1200">1.5×</option></select></div>
-    </div>
-    <div class="toolbar-row"><div class="phase" id="phase">Ready to begin</div><div class="counter" id="count">Step 0 / 9</div></div>
-    <div class="progress" role="progressbar" aria-valuemin="0" aria-valuemax="9" aria-valuenow="0" aria-label="Simulation progress"><div class="progressbar" id="progress"></div></div>
-    <div class="toolbar-row"><div class="control-group"><button class="btn btn-primary" id="play">▶ Play</button><button class="btn" id="next">Next step →</button><button class="btn" id="reset">↺ Restart</button></div><span class="hint">Use Play or advance one step at a time.</span></div>
-  </section>
-  <div class="columns">
-    <section class="protocol panel" aria-label="TCP simulation">
-      <div class="protocol-head"><h2>TCP</h2><span class="detail">RELIABLE BYTE STREAM</span></div><p class="protocol-intro">Connection-oriented · Ordered delivery · Retransmission</p>
-      <div class="network" id="tcp-track"><div class="node client"><div class="node-icon">💻</div><div class="node-name">Client</div></div><div class="wire"></div><div class="node server"><div class="node-icon">🖥️</div><div class="node-name">Server</div></div><div id="tcp-packet"></div><div class="packet-icon" id="tcp-cross" aria-hidden="true">✕</div><div class="network-sub">Transport layer: TCP</div></div>
-      <div class="readout" role="status" aria-live="polite"><h3 id="tcp-title">Waiting</h3><p id="tcp-desc">No TCP connection established yet.</p></div><div class="eventlog"><div class="logtitle">TCP event log</div><div id="tcp-log"><div class="logline">No events yet.</div></div></div>
-    </section>
-    <section class="protocol udp panel" aria-label="UDP simulation">
-      <div class="protocol-head"><h2>UDP</h2><span class="detail">CONNECTIONLESS DATAGRAMS</span></div><p class="protocol-intro">No handshake · No ordering guarantee · No built-in retransmission</p>
-      <div class="network" id="udp-track"><div class="node client"><div class="node-icon">💻</div><div class="node-name">Client</div></div><div class="wire"></div><div class="node server"><div class="node-icon">🖥️</div><div class="node-name">Server</div></div><div id="udp-packet"></div><div class="packet-icon" id="udp-cross" aria-hidden="true">✕</div><div class="network-sub">Transport layer: UDP</div></div>
-      <div class="readout" role="status" aria-live="polite"><h3 id="udp-title">Waiting</h3><p id="udp-desc">No UDP handshake required.</p></div><div class="eventlog"><div class="logtitle">UDP event log</div><div id="udp-log"><div class="logline">No events yet.</div></div></div>
-    </section>
+  <div class="lesson-layout">
+    <nav class="toc" aria-label="On this page">
+      <div class="toc-label">On this page</div>
+      <a href="#tcp">01 · TCP</a>
+      <a href="#udp">02 · UDP</a>
+      <a href="#comparison">03 · Comparison</a>
+      <a href="#simulation">04 · Simulator</a>
+      <a href="#decisions">05 · Choosing</a>
+      <a href="#questions">06 · Questions</a>
+      <a href="#takeaways">07 · Takeaways</a>
+      <a href="#references">References</a>
+      <div class="toc-rule"></div>
+      <div class="toc-hint">Read the concept.<br>Observe the mechanism.<br>Explain the trade-off.</div>
+    </nav>
+    <article class="article">
+      <section class="section" id="tcp" aria-labelledby="tcp-heading">
+        <div class="section-number">01 / Mechanism</div><h2 id="tcp-heading">TCP — Transmission Control Protocol</h2>
+        <div class="callout"><p>TCP is a <strong>connection-oriented and reliable protocol</strong>.</p></div>
+        <h3>How it works</h3>
+        <ul>
+          <li><strong>Connection-oriented:</strong> Before exchanging application data, the client and server establish a connection using a <em>Three-Way Handshake</em> (SYN → SYN-ACK → ACK).</li>
+          <li><strong>Reliable delivery:</strong> TCP ensures that data is delivered to the application in the correct order, without duplication, as long as the connection completes successfully.</li>
+          <li><strong>Retransmission:</strong> Lost data is automatically retransmitted.</li>
+          <li><strong>Flow control:</strong> TCP adjusts the sending rate according to the receiver's capacity.</li>
+          <li><strong>Congestion control:</strong> TCP regulates the transmission rate to reduce network congestion.</li>
+        </ul>
+        <h3>Common use cases</h3><p>TCP is particularly suitable when <strong>data integrity, reliability, and ordering are essential</strong>.</p>
+        <ul><li>Web browsing (HTTP/1.1 and HTTP/2).</li><li>File transfers (FTP, SFTP).</li><li>Remote access (SSH).</li><li>Email communication (SMTP, IMAP).</li></ul>
+        <h3>Python example</h3>
+        <div class="codebox"><div class="code-head"><span>Python · TCP socket</span><button type="button" data-copy="tcp-code" aria-label="Copy TCP Python example">Copy</button></div><pre id="tcp-code"><code>import socket
+
+sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+
+# Establish a TCP connection
+sock.connect(("example.com", 80))
+
+# Send data
+sock.sendall(b"Hello")
+
+sock.close()</code></pre></div>
+        <p class="fine-print">This demonstrates a TCP socket connection, not a valid HTTP request. An HTTP server may reject or ignore the raw message.</p>
+        <div class="key"><strong>Key takeaway:</strong> A TCP connection must be established before application data can be transmitted.</div>
+      </section>
+      <section class="section" id="udp" aria-labelledby="udp-heading">
+        <div class="section-number">02 / Mechanism</div><h2 id="udp-heading">UDP — User Datagram Protocol</h2>
+        <div class="callout"><p>UDP is a <strong>connectionless protocol that does not guarantee reliable delivery</strong>.</p></div>
+        <h3>How it works</h3>
+        <ul>
+          <li><strong>Connectionless:</strong> No connection establishment or Three-Way Handshake is required.</li>
+          <li><strong>No delivery guarantee:</strong> Datagrams may be lost during transmission.</li>
+          <li><strong>No ordering guarantee:</strong> Datagrams may arrive in a different order from the one in which they were sent.</li>
+          <li><strong>No automatic retransmission:</strong> UDP does not automatically resend lost datagrams.</li>
+          <li><strong>Low overhead:</strong> UDP has a smaller header (8 bytes compared to TCP's minimum of 20 bytes).</li>
+        </ul>
+        <h3>Common use cases</h3><p>UDP is particularly suitable for applications that prioritize <strong>low latency, real-time communication, or lightweight message exchange</strong>.</p>
+        <ul><li>Online multiplayer games.</li><li>Video conferencing and VoIP.</li><li>Traditional DNS queries.</li><li>HTTP/3 through QUIC, which implements its own reliability mechanisms on top of UDP.</li></ul>
+        <h3>Python example</h3>
+        <div class="codebox"><div class="code-head"><span>Python · UDP socket</span><button type="button" data-copy="udp-code" aria-label="Copy UDP Python example">Copy</button></div><pre id="udp-code"><code>import socket
+
+sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+
+# Send data without establishing a connection
+sock.sendto(b"Hello", ("example.com", 12345))
+
+sock.close()</code></pre></div>
+        <div class="key"><strong>Key takeaway:</strong> UDP allows applications to send datagrams directly without establishing a transport-layer connection.</div>
+      </section>
+      <section class="section" id="comparison" aria-labelledby="comparison-heading">
+        <div class="section-number">03 / Side by side</div><h2 id="comparison-heading">TCP vs UDP — Comparison</h2>
+        <div class="table-scroller"><table class="compare"><thead><tr><th scope="col">Feature</th><th scope="col">TCP</th><th scope="col">UDP</th></tr></thead><tbody>
+          <tr><td>Connection</td><td>Connection-oriented</td><td>Connectionless</td></tr>
+          <tr><td>Handshake</td><td>Required</td><td>Not required</td></tr>
+          <tr><td>Reliable delivery</td><td>Yes*</td><td>No</td></tr>
+          <tr><td>Ordered delivery</td><td>Yes</td><td>No</td></tr>
+          <tr><td>Retransmission</td><td>Automatic</td><td>Not built in</td></tr>
+          <tr><td>Congestion control</td><td>Built in</td><td>Not built in</td></tr>
+          <tr><td>Minimum header size</td><td>20 bytes</td><td>8 bytes</td></tr>
+          <tr><td>Typical use cases</td><td>HTTP/1.1, HTTP/2, SSH, FTP</td><td>DNS, VoIP, gaming, QUIC</td></tr>
+        </tbody></table></div>
+        <p class="fine-print">*TCP provides reliable delivery while the connection remains functional. It cannot guarantee successful delivery if the connection permanently fails.</p>
+      </section>
+      <section class="section" id="simulation" aria-labelledby="simulation-heading">
+        <div class="section-number">04 / Interactive lab</div><h2 id="simulation-heading">See the packets move.</h2>
+        <p class="sim-intro">Compare what TCP and UDP do when a packet gets lost. Run the animation or move through each step yourself.</p>
+        <div class="sim-panel">
+          <div class="toolbar" aria-label="Simulation controls">
+            <div class="toolbar-row">
+              <div class="control-group"><span class="sectionlabel">Scenario</span><button class="btn" id="loss" aria-pressed="true">With packet loss</button><button class="btn" id="normal" aria-pressed="false">No packet loss</button></div>
+              <div class="control-group"><label class="sectionlabel" for="speed">Speed</label><select id="speed"><option value="2800">0.75×</option><option value="2000" selected>1×</option><option value="1200">1.5×</option></select></div>
+            </div>
+            <div class="toolbar-row"><div class="phase" id="phase">Ready to begin</div><div class="counter" id="count">Step 0 / 9</div></div>
+            <div class="progress" role="progressbar" aria-valuemin="0" aria-valuemax="9" aria-valuenow="0" aria-label="Simulation progress"><div class="progressbar" id="progress"></div></div>
+            <div class="toolbar-row"><div class="control-group"><button class="btn btn-primary" id="play">▶ Play</button><button class="btn" id="next">Next step →</button><button class="btn" id="reset">↺ Restart</button></div><span class="fine-print" style="margin:0">A conceptual model, not a packet capture.</span></div>
+          </div>
+          <div class="sim-columns">
+            <section class="protocol" aria-label="TCP simulation">
+              <div class="protocol-head"><h3>TCP</h3><span class="detail">Reliable byte stream</span></div><p class="protocol-intro">Connection-oriented · Ordered · Retransmitted</p>
+              <div class="network" id="tcp-track"><div class="node client"><div class="node-icon">💻</div><div class="node-name">Client</div></div><div class="wire"></div><div class="node server"><div class="node-icon">🖥️</div><div class="node-name">Server</div></div><div id="tcp-packet"></div><div class="packet-icon" id="tcp-cross" aria-hidden="true">✕</div><div class="network-sub">Transport: TCP</div></div>
+              <div class="readout" role="status" aria-live="polite"><h4 id="tcp-title">Waiting</h4><p id="tcp-desc">No TCP connection established yet.</p></div><div class="eventlog"><div class="logtitle">TCP events</div><div id="tcp-log"><div class="logline">No events yet.</div></div></div>
+            </section>
+            <section class="protocol udp" aria-label="UDP simulation">
+              <div class="protocol-head"><h3>UDP</h3><span class="detail">Connectionless datagrams</span></div><p class="protocol-intro">No handshake · No ordering guarantee</p>
+              <div class="network" id="udp-track"><div class="node client"><div class="node-icon">💻</div><div class="node-name">Client</div></div><div class="wire"></div><div class="node server"><div class="node-icon">🖥️</div><div class="node-name">Server</div></div><div id="udp-packet"></div><div class="packet-icon" id="udp-cross" aria-hidden="true">✕</div><div class="network-sub">Transport: UDP</div></div>
+              <div class="readout" role="status" aria-live="polite"><h4 id="udp-title">Waiting</h4><p id="udp-desc">No UDP handshake required.</p></div><div class="eventlog"><div class="logtitle">UDP events</div><div id="udp-log"><div class="logline">No events yet.</div></div></div>
+            </section>
+          </div>
+          <div class="sim-legend"><span><i class="dot" style="background:#0c8576"></i>TCP</span><span><i class="dot" style="background:#7c60b6"></i>UDP</span><span><i class="dot" style="background:#bf4c51"></i>Simulated loss</span></div>
+          <p class="sim-note"><strong>Important:</strong> The timelines are illustrative, not synchronized packet captures. TCP sequence numbers, cumulative ACKs, flow control and congestion control are simplified. TCP can retransmit unacknowledged data but cannot guarantee delivery after permanent connection failure. UDP can be enhanced by higher-level protocols such as QUIC.</p>
+        </div>
+      </section>
+      <section class="section" id="decisions" aria-labelledby="decisions-heading">
+        <div class="section-number">05 / Architecture choices</div><h2 id="decisions-heading">When should we choose TCP or UDP?</h2>
+        <p>In most modern applications, <strong>the transport protocol is already selected by the technology or framework being used</strong>.</p>
+        <ul><li>An HTTP/1.1 or HTTP/2 client uses TCP.</li><li>An HTTP/3 client uses QUIC over UDP.</li><li>An SSH connection uses TCP.</li></ul>
+        <p>However, when designing <strong>low-level networking systems, custom communication protocols, or performance-sensitive applications</strong>, we may need to explicitly choose between TCP and UDP.</p>
+        <p>The decision depends on several factors:</p>
+        <ul><li><strong>Reliability:</strong> Is guaranteed, ordered data delivery required?</li><li><strong>Latency:</strong> Is minimizing communication delay a priority?</li><li><strong>Packet loss tolerance:</strong> Can the application tolerate missing data?</li><li><strong>Ordering:</strong> Must data arrive in the same order it was sent?</li><li><strong>Complexity:</strong> Can the application implement its own reliability, ordering, or congestion-control mechanisms?</li></ul>
+        <h3>Architecture examples</h3>
+        <div class="decision-list">
+          <div class="decision"><b>File transfer</b><p>TCP is generally preferred because missing or incorrectly ordered data must be handled reliably.</p></div>
+          <div class="decision"><b>Real-time gaming</b><p>UDP is often preferred because the latest player position can matter more than retransmitting an outdated update.</p></div>
+          <div class="decision"><b>Video conferencing</b><p>UDP is commonly used because receiving audio and video on time is often more useful than recovering every lost packet.</p></div>
+        </div>
+      </section>
+      <section class="section" id="questions" aria-labelledby="questions-heading">
+        <div class="section-number">06 / Active recall</div>
+        <div class="qa-heading"><h2 id="questions-heading">Questions you should answer</h2><button class="small-button" id="answers-toggle" type="button" aria-expanded="false">Reveal all answers</button></div>
+        <p class="muted">Try explaining each answer aloud before opening it. The goal is to explain the mechanism and justify a design choice — not memorize a definition.</p>
+        <div class="qa-group"><h3>Fundamentals</h3>
+          <details class="qa"><summary><span class="q-index">01</span>What does “connection-oriented” mean in TCP?</summary><p class="answer">TCP establishes shared connection state before exchanging application data. The three-way handshake is SYN → SYN-ACK → ACK. UDP has no equivalent transport handshake.</p></details>
+          <details class="qa"><summary><span class="q-index">02</span>How is a TCP byte stream different from a UDP datagram?</summary><p class="answer">TCP delivers an ordered stream of bytes with no application message boundaries. UDP preserves the boundaries of individually sent datagrams, but delivery and ordering are not guaranteed.</p></details>
+          <details class="qa"><summary><span class="q-index">03</span>Does TCP guarantee that every packet will arrive?</summary><p class="answer">No. TCP retransmits lost data and presents an ordered, duplicate-free byte stream while communication succeeds. A connection can fail; applications must detect errors and decide how to recover.</p></details>
+        </div>
+        <div class="qa-group"><h3>Mechanisms</h3>
+          <details class="qa"><summary><span class="q-index">04</span>What happens when a TCP segment is lost? What about UDP?</summary><p class="answer">TCP can detect missing acknowledgments or other loss signals and retransmit unacknowledged data. UDP does not have automatic transport-layer acknowledgments or retransmission; an application can implement its own recovery.</p></details>
+          <details class="qa"><summary><span class="q-index">05</span>What is the difference between flow control and congestion control?</summary><p class="answer">Flow control protects the receiver from being overwhelmed. Congestion control protects the network path from excessive traffic. Both affect TCP sending behavior for different reasons.</p></details>
+          <details class="qa"><summary><span class="q-index">06</span>Is UDP always faster, or inherently less secure?</summary><p class="answer">Neither. UDP has less protocol overhead, but performance depends on the whole system and network conditions. Neither UDP nor TCP encrypts data by itself; security comes from additional protocols, such as TLS or QUIC.</p></details>
+          <details class="qa"><summary><span class="q-index">07</span>How can HTTP/3 offer reliable communication over UDP?</summary><p class="answer">HTTP/3 uses QUIC over UDP. QUIC implements reliable streams, loss detection, congestion control and TLS 1.3 security above UDP, rather than relying on TCP.</p></details>
+        </div>
+        <div class="qa-group"><h3>Architect decisions</h3>
+          <details class="qa"><summary><span class="q-index">08</span>Why would a video call prefer losing a frame to retransmitting it?</summary><p class="answer">A retransmitted frame may arrive after its playback deadline, increasing latency or disrupting audio/video synchronization. Timely delivery of current media can matter more than recovering outdated data. Applications still need strategies for acceptable quality.</p></details>
+          <details class="qa"><summary><span class="q-index">09</span>Why use TCP for SSH, but often UDP for a DNS query?</summary><p class="answer">SSH needs an ordered, reliable stream for interactive remote access. Traditional DNS queries are usually short independent request/response exchanges, so UDP avoids a transport handshake. DNS also uses TCP when appropriate, including zone transfers and some larger responses.</p></details>
+          <details class="qa"><summary><span class="q-index">10</span>When designing a service, who really chooses TCP or UDP?</summary><p class="answer">Often the application protocol or library makes the choice for you (for example, SSH or HTTP/3). For a custom transport, choose based on loss tolerance, latency, reliability, ordering, ecosystem support and the complexity of implementing missing mechanisms.</p></details>
+        </div>
+      </section>
+      <section class="section" id="takeaways" aria-labelledby="takeaways-heading">
+        <div class="section-number">07 / Summary</div><h2 id="takeaways-heading">Key takeaways</h2>
+        <div class="callout"><p><strong>TCP prioritizes reliability and ordered delivery, while UDP provides a lightweight, connectionless transport without built-in delivery guarantees.</strong></p></div>
+        <ol>
+          <li><strong>TCP is not always slower than UDP.</strong> Performance depends on the application, network conditions, and protocol implementation.</li>
+          <li><strong>UDP is not inherently less secure than TCP.</strong> Neither TCP nor UDP provides encryption by itself.</li>
+          <li><strong>UDP does not necessarily mean unreliable applications.</strong> Protocols such as QUIC implement reliability, congestion control, and encryption on top of UDP.</li>
+        </ol>
+        <p><strong>From an architect's perspective:</strong> The choice is not simply about speed versus reliability. It is about selecting the transport mechanisms that best match the application's requirements and constraints.</p>
+      </section>
+      <section class="section" id="references" aria-labelledby="references-heading">
+        <div class="section-number">Further reading</div><h2 id="references-heading">Primary sources</h2>
+        <ul class="reference-links"><li><a href="https://www.rfc-editor.org/rfc/rfc9293" target="_blank" rel="noopener noreferrer">RFC 9293 — Transmission Control Protocol (TCP)</a></li><li><a href="https://www.rfc-editor.org/rfc/rfc768" target="_blank" rel="noopener noreferrer">RFC 768 — User Datagram Protocol (UDP)</a></li><li><a href="https://www.rfc-editor.org/rfc/rfc9000" target="_blank" rel="noopener noreferrer">RFC 9000 — QUIC: A UDP-Based Multiplexed and Secure Transport</a></li></ul>
+      </section>
+    </article>
   </div>
-  <footer class="footer panel">
-    <strong style="font-size:13px">What to notice</strong><div class="legend"><span><i class="dot" style="background:var(--tcp)"></i>TCP exchanges</span><span><i class="dot" style="background:var(--udp)"></i>UDP datagrams</span><span><i class="dot" style="background:var(--err)"></i>Simulated network loss</span></div>
-    <div class="note"><strong>Architecture note:</strong> The two timelines are conceptual, not synchronized packet captures. TCP sequence numbers, cumulative ACKs, windowing, and congestion control are simplified. TCP can retransmit unacknowledged data; it cannot guarantee delivery if a connection permanently fails. UDP itself does not detect or recover losses, but applications or protocols such as QUIC can implement these functions above UDP. Neither transport protocol provides encryption on its own.</div>
-  </footer>
 </main>
+<footer class="page-footer"><div class="container"><span>Architecture Lab · Read. Simulate. Explain.</span><a href="../../">← Back to all concepts</a></div></footer>
+
 <script>
 (()=>{
   'use strict';
@@ -89,6 +218,32 @@
   function reset(){pause();step=-1;render()}
   function choose(value){scenario=value;timeline=stages();$('loss').setAttribute('aria-pressed',String(value==='loss'));$('normal').setAttribute('aria-pressed',String(value==='normal'));reset()}
   $('play').addEventListener('click',toggle);$('next').addEventListener('click',()=>{pause();next()});$('reset').addEventListener('click',reset);$('loss').addEventListener('click',()=>choose('loss'));$('normal').addEventListener('click',()=>choose('normal'));$('speed').addEventListener('change',()=>{if(playing){clearTimer();timer=setTimeout(tick,Number($('speed').value))}});document.addEventListener('visibilitychange',()=>{if(document.hidden&&playing)pause()});render();
+})();
+</script>
+
+<script>
+(() => {
+  const toggle = document.getElementById('answers-toggle');
+  const answers = [...document.querySelectorAll('.qa')];
+  toggle.addEventListener('click', () => {
+    const reveal = answers.some(item => !item.open);
+    answers.forEach(item => { item.open = reveal; });
+    toggle.textContent = reveal ? 'Hide all answers' : 'Reveal all answers';
+    toggle.setAttribute('aria-expanded', String(reveal));
+  });
+  for (const copy of document.querySelectorAll('[data-copy]')) {
+    copy.addEventListener('click', async () => {
+      const text = document.getElementById(copy.dataset.copy)?.textContent;
+      if (!text) return;
+      try {
+        await navigator.clipboard.writeText(text);
+        copy.textContent = 'Copied!';
+        setTimeout(() => { copy.textContent = 'Copy'; }, 1600);
+      } catch {
+        copy.textContent = 'Select and copy';
+      }
+    });
+  }
 })();
 </script>
 </body>
